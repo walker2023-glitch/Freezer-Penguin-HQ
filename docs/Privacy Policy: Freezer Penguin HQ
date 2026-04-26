@@ -1,0 +1,35 @@
+Privacy Policy: Freezer Penguin HQ
+Last Updated: April 26, 2026
+
+1. Our Commitment to Stewardship
+At Freezer Penguin HQ, we believe that data, like food, should be handled with care and purpose. We only collect the information necessary to help you reduce waste and manage your kitchen efficiently.
+
+2. Information We Collect
+Account Data: When you create an account, we store your email address and a securely hashed password.
+
+Inventory Data: We store the names, quantities, and expiration dates of the food items you add to your virtual freezer.
+
+Image Data (Premium Tier): If you use our AI Vision features, we temporarily process photos of your food. These images are sent to Google Gemini for analysis and are not stored permanently on our primary servers once the analysis is complete.
+
+Recipe Preferences: We store your culinary preferences (e.g., "Vegan," "Gluten-Free") to ensure our AI suggests relevant meals.
+
+3. How We Use Your Information
+Inventory Management: To provide you with a real-time look at what you own.
+
+Notifications: To alert you before your food expires.
+
+AI Orchestration: To send ingredient lists to the Spoonacular API and Google Gemini to generate personalized recipes.
+
+Stats & Analytics: To show you how much food (and money) you are saving over time.
+
+4. Data Security
+Your data is stored on a secured, private server utilizing AES 256-bit encryption. Access to the database is restricted via Cloudflare Tunnels, ensuring that your information is never exposed directly to the open internet.
+
+5. Third-Party Services
+We partner with the following trusted services to provide our "Premium" features:
+
+Google Gemini (AI): For image analysis and recipe personalization.
+
+Spoonacular API: For verified recipe data.
+
+RevenueCat: For secure subscription and payment management.
