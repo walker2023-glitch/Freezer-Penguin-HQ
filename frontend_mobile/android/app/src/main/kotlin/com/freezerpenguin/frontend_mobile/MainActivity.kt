@@ -1,0 +1,5 @@
+package com.freezerpenguin.frontend_mobile
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity: FlutterActivity()
