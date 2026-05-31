@@ -33,3 +33,59 @@ def get_categories():
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database connection failed: {str(e)}")
+    
+from pydantic import BaseModel, Field
+from datetime import date
+
+# 1. Update the schema model to reflect your exact database structure
+class InventoryItemCreate(BaseModel):
+    user_id: int = Field(..., example=1)
+    quantity: int = Field(..., example=1)
+    expiration_date: date = Field(..., example="2026-06-15")
+    upc: str = Field(..., example="012345678910")  # Maps to your UPC column
+    location_id: int = Field(..., example=1)
+    unit_id: int = Field(..., example=1)
+
+# 2. Update the query syntax to match your columns exactly
+@app.post("/inventory/add", status_code=201)
+def add_inventory_item(item: InventoryItemCreate):
+    """Checks for the UPC parent row, handles missing barcodes, and adds the item safely."""
+    try:
+        with engine.connect() as connection:
+            # 1. Check if the barcode already exists in barcode_master
+            check_upc = connection.execute(
+                text("SELECT UPC FROM barcode_master WHERE UPC = :upc"), 
+                {"upc": item.upc}
+            ).fetchone()
+            
+            # 2. If it's a completely new barcode, seed it dynamically into the parent table first
+            if not check_upc:
+                connection.execute(
+                    text("""
+                        INSERT INTO barcode_master (UPC, product_name, brand, default_shelf_life, category_id)
+                        VALUES (:upc, 'Unknown Presentation Item', 'Test Brand', 7, 1)
+                    """),
+                    {"upc": item.upc}
+                )
+            
+            # 3. Now insert safely into inventory_items without breaking the foreign key constraint
+            query = text("""
+                INSERT INTO inventory_items (user_id, quantity, expiration_date, UPC, location_id, unit_id)
+                VALUES (:user_id, :quantity, :expiration_date, :upc, :location_id, :unit_id)
+            """)
+            
+            connection.execute(query, {
+                "user_id": item.user_id,
+                "quantity": item.quantity,
+                "expiration_date": item.expiration_date,
+                "upc": item.upc,
+                "location_id": item.location_id,
+                "unit_id": item.unit_id
+            })
+            
+            connection.commit()
+            return {"status": "success", "message": f"Barcode {item.upc} verified and item logged successfully!"}
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database write failure: {str(e)}")
+            
