@@ -46,29 +46,80 @@ class InventoryItemCreate(BaseModel):
     location_id: int = Field(..., example=1)
     unit_id: int = Field(..., example=1)
 
-# 2. Update the query syntax to match your columns exactly
+import httpx  # Put this at the very top of your main.py file
+
 @app.post("/inventory/add", status_code=201)
-def add_inventory_item(item: InventoryItemCreate):
-    """Checks for the UPC parent row, handles missing barcodes, and adds the item safely."""
+async def add_inventory_item(item: InventoryItemCreate):
+    """
+    Checks for the UPC parent row locally. 
+    On a cache miss, it fetches real food properties from Open Food Facts,
+    maps the category dynamically, and logs it cleanly into MySQL.
+    """
     try:
         with engine.connect() as connection:
-            # 1. Check if the barcode already exists in barcode_master
+            # 1. Check if the barcode already exists in your MySQL barcode_master
             check_upc = connection.execute(
                 text("SELECT UPC FROM barcode_master WHERE UPC = :upc"), 
                 {"upc": item.upc}
             ).fetchone()
             
-            # 2. If it's a completely new barcode, seed it dynamically into the parent table first
+            # 2. CACHE MISS: Hit Open Food Facts to dynamically learn about the item
             if not check_upc:
+                api_url = f"https://world.openfoodfacts.org/api/v2/product/{item.upc}.json"
+                
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(api_url, timeout=5.0)
+                
+                product_name = 'Unknown Food Item'
+                brand_name = 'Generic'
+                category_name = 'General'
+                
+                if response.status_code == 200:
+                    api_data = response.json()
+                    if api_data.get("status") == 1:
+                        product_data = api_data.get("product", {})
+                        product_name = product_data.get("product_name", product_name)
+                        brand_name = product_data.get("brands", brand_name)
+                        
+                        # Grab the human-readable English category tag if available
+                        tags = product_data.get("categories_tags", [])
+                        if tags:
+                            category_name = tags[0].replace("en:", "").replace("-", " ").title()
+
+                # 3. Handle Category Alignment
+                # Check if the category text exists in your categories table
+                cat_check = connection.execute(
+                    text("SELECT category_id FROM categories WHERE category_name = :name"),
+                    {"name": category_name}
+                ).fetchone()
+                
+                if cat_check:
+                    category_id = cat_check[0]
+                else:
+                    # Seed the new category automatically to satisfy Foreign Key constraints
+                    new_cat = connection.execute(
+                        text("INSERT INTO categories (category_name) VALUES (:name)"),
+                        {"name": category_name}
+                    )
+                    # For SQLAlchemy/MySQL execution contexts, grab the auto-increment ID
+                    category_id = new_cat.lastrowid
+
+                # 4. Save to master database cache so future scans are local and instant
                 connection.execute(
                     text("""
                         INSERT INTO barcode_master (UPC, product_name, brand, default_shelf_life, category_id)
-                        VALUES (:upc, 'Unknown Presentation Item', 'Test Brand', 7, 1)
+                        VALUES (:upc, :name, :brand, :shelf_life, :cat_id)
                     """),
-                    {"upc": item.upc}
+                    {
+                        "upc": item.upc,
+                        "name": product_name,
+                        "brand": brand_name,
+                        "shelf_life": 14,  # Standard fallback default days
+                        "cat_id": category_id
+                    }
                 )
             
-            # 3. Now insert safely into inventory_items without breaking the foreign key constraint
+            # 5. Insert directly into inventory_items safely
             query = text("""
                 INSERT INTO inventory_items (user_id, quantity, expiration_date, UPC, location_id, unit_id)
                 VALUES (:user_id, :quantity, :expiration_date, :upc, :location_id, :unit_id)
@@ -84,8 +135,7 @@ def add_inventory_item(item: InventoryItemCreate):
             })
             
             connection.commit()
-            return {"status": "success", "message": f"Barcode {item.upc} verified and item logged successfully!"}
+            return {"status": "success", "message": f"Product synchronized and item logged successfully!"}
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database write failure: {str(e)}")
-            
