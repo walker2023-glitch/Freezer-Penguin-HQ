@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Freezer Penguin HQ 🐧</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#0E294B",               // Brand Deep Navy
+                        "primary-fixed-dim": "#7ad0ff",
+                        "on-primary-fixed-variant": "#004c69",
+                        "secondary": "#5A718D",             // Muted Slate Blue
+                        "secondary-container": "#D5EAF7",   // Soft Ice-Tinted Blue
+                        "on-surface": "#161c20",
+                        "primary-container": "#00bfff",     // Electric Neon Glacier Blue
+                        "on-primary": "#ffffff",
+                        "background": "#FFFFFF",            // Clean Light Mode Canvas
+                        "surface": "#f5faff",               // Ice-Tinted Surface Areas
+                        "surface-container-high": "#e3e9ee",
+                        "surface-container-highest": "#dee3e8",
+                        "outline-variant": "#bcc8d1",
+                        "on-surface-variant": "#3d4850",
+                        "brand-orange": "#F37321",          // Brand Action Beak Orange
+                        "error-container": "#ffdad6",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "container-padding": "20px",
+                        "unit": "4px",
+                        "gutter": "16px",
+                        "stack-lg": "24px"
+                    },
+                    "fontFamily": {
+                        "sans": ["Quicksand", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Quicksand', sans-serif; }
+        
+        /* Brand Aesthetic: Chunky high-contrast outlines matching the logo profile */
+        .glass-panel {
+            background: rgba(245, 250, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 2px solid #0E294B;
+        }
+        
+        .glass-input {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #5A718D;
+        }
+        
+        .glass-input:focus {
+            border-color: #F37321;
+            box-shadow: 0 0 0 3px rgba(243, 115, 33, 0.2);
+            outline: none;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .scanning-line {
+            height: 3px;
+            background: #F37321;
+            box-shadow: 0 0 12px #F37321;
+            animation: scan 2s linear infinite;
+        }
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: 100%; }
+            100% { top: 0; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-24 relative overflow-x-hidden">
+
+    <header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b-2 border-primary h-16 flex justify-between items-center px-container-padding">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl overflow-hidden border-2 border-primary bg-secondary-container flex items-center justify-center">
+                <span class="text-2xl">🐧</span>
+            </div>
+            <h1 class="font-bold text-lg md:text-xl text-primary tracking-tight">Freezer Penguin HQ</h1>
+        </div>
+        <button class="w-10 h-10 rounded-xl border-2 border-primary bg-white flex items-center justify-center hover:bg-secondary-container transition-all active:scale-90 text-primary">
+            <span class="material-symbols-outlined">settings</span>
+        </button>
+    </header>
+
+    <main class="pt-24 px-container-padding max-w-2xl mx-auto space-y-stack-lg">
+
+        <div id="view-home" class="space-y-stack-lg">
+            <section class="glass-panel rounded-xl p-6 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden">
+                <div class="text-center md:text-left">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container border border-primary text-primary font-bold text-xs uppercase tracking-wider mb-3">
+                        Colony Leader
+                    </div>
+                    <h2 class="text-3xl font-bold text-primary mb-2">Ready to chill?</h2>
+                    <p class="text-secondary font-medium">Your cold storage inventory is locked down and cached safely.</p>
+                </div>
+            </section>
+
+            <section class="grid grid-cols-2 gap-4">
+                <div class="glass-panel rounded-xl p-4 flex flex-col items-center text-center">
+                    <span class="material-symbols-outlined text-primary text-3xl mb-1">kitchen</span>
+                    <span class="text-3xl font-bold text-primary">42</span>
+                    <span class="text-xs font-bold text-secondary uppercase tracking-wider mt-1">Total Stock</span>
+                </div>
+                <div class="glass-panel rounded-xl p-4 flex flex-col items-center text-center border-brand-orange">
+                    <span class="material-symbols-outlined text-brand-orange text-3xl mb-1">warning</span>
+                    <span class="text-3xl font-bold text-brand-orange">3</span>
+                    <span class="text-xs font-bold text-brand-orange uppercase tracking-wider mt-1">Expiring</span>
+                </div>
+            </section>
+
+            <section class="glass-panel rounded-xl p-5 overflow-hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-primary flex items-center gap-2">
+                        <span class="material-symbols-outlined">qr_code_scanner</span> Barcode Scanner
+                    </h3>
+                </div>
+                <div class="relative aspect-video bg-primary rounded-xl mb-4 flex items-center justify-center group overflow-hidden border-2 border-primary">
+                    <div class="scanning-line absolute w-full z-10 hidden group-[.scanning]:block"></div>
+                    <div class="text-secondary-container text-center">
+                        <span class="material-symbols-outlined text-4xl block mb-2">videocam_off</span>
+                        <p class="text-xs font-bold uppercase tracking-wider">Camera Engine Ready</p>
+                    </div>
+                </div>
+                <button class="w-full bg-brand-orange text-white border-2 border-primary py-3 rounded-xl font-bold transition-transform active:scale-95 shadow-md" onclick="startScanner(this)">
+                    Trigger Camera Capture
+                </button>
+            </section>
+        </div>
+
+        <div id="view-freezer" class="space-y-stack-lg hidden">
+            <section class="w-full">
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary">search</span>
+                    <input class="w-full h-12 pl-12 pr-4 rounded-xl glass-input text-on-surface" placeholder="Search parameters..." type="text"/>
+                </div>
+            </section>
+
+            <section class="w-full space-y-4">
+                <h3 class="text-xl font-bold text-primary flex items-center gap-2">
+                    <span class="material-symbols-outlined">ac_unit</span> Cold-Storage Matrix
+                </h3>
+                <div class="space-y-3" id="inventory-list-target">
+                    <div class="glass-panel rounded-xl p-4 flex items-center justify-between hover:bg-secondary-container/40 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-brand-orange/20 border-2 border-primary flex items-center justify-center text-brand-orange">
+                                <span class="material-symbols-outlined">set_meal</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-primary">Salmon Fillets</h4>
+                                <p class="text-xs font-semibold text-secondary">Qty: 2 Units • Main Freezer</p>
+                            </div>
+                        </div>
+                        <span class="bg-brand-orange text-white border border-primary px-3 py-1 rounded-full font-bold text-xs uppercase">Critical</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="view-add" class="space-y-stack-lg hidden">
+            <div class="glass-panel rounded-xl p-5 space-y-4">
+                <h3 class="text-xl font-bold text-primary flex items-center gap-2 border-b-2 border-primary pb-2">
+                    <span class="material-symbols-outlined">add_box</span> Log New Inventory
+                </h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">UPC Barcode String</label>
+                        <input class="w-full h-12 px-4 rounded-xl glass-input" placeholder="Scan or enter item barcode" type="text" id="form-upc"/>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Quantity</label>
+                            <input class="w-full h-12 px-4 rounded-xl glass-input" value="1" type="number" id="form-qty"/>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1">Expiration Date</label>
+                            <input class="w-full h-12 px-4 rounded-xl glass-input" type="date" id="form-date"/>
+                        </div>
+                    </div>
+                    <button class="w-full h-14 bg-primary text-white font-bold rounded-xl border-2 border-primary hover:bg-brand-orange transition-colors mt-4" type="button" onclick="submitNewItem()">
+                        Commit to Database
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-tips" class="space-y-stack-lg hidden">
+            <section class="glass-panel rounded-xl p-5 border-brand-orange bg-gradient-to-br from-white to-secondary-container/20">
+                <h3 class="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-brand-orange">lightbulb</span> Zero-Waste Standard Guidelines
+                </h3>
+                <p class="text-secondary text-sm leading-relaxed">Air causes frost crystallization. Squeeze all residual atmospheric pockets from storage membranes before final vacuum sealing to optimize texture retention.</p>
+            </section>
+        </div>
+
+    </main>
+
+    <nav class="fixed bottom-0 left-0 w-full z-50 bg-surface/90 backdrop-blur-2xl border-t-2 border-primary flex justify-around items-center px-2 pb-4 pt-2 rounded-t-2xl shadow-xl">
+        <button onclick="navigateTo('view-home')" class="nav-btn flex flex-col items-center justify-center text-primary px-4 py-1 rounded-xl transition-all">
+            <span class="material-symbols-outlined">home</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider mt-0.5">Home</span>
+        </button>
+        <button onclick="navigateTo('view-freezer')" class="nav-btn flex flex-col items-center justify-center text-secondary px-4 py-1 rounded-xl transition-all">
+            <span class="material-symbols-outlined">kitchen</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider mt-0.5">Matrix</span>
+        </button>
+        <button onclick="navigateTo('view-add')" class="nav-btn flex flex-col items-center justify-center text-secondary px-4 py-1 rounded-xl transition-all">
+            <span class="material-symbols-outlined">add_circle</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider mt-0.5">Add</span>
+        </button>
+        <button onclick="navigateTo('view-tips')" class="nav-btn flex flex-col items-center justify-center text-secondary px-4 py-1 rounded-xl transition-all">
+            <span class="material-symbols-outlined">lightbulb</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider mt-0.5">Tips</span>
+        </button>
+    </nav>
+
+    <script>
+        function navigateTo(viewId) {
+            // Hide all active screen modules
+            document.getElementById('view-home').classList.add('hidden');
+            document.getElementById('view-freezer').classList.add('hidden');
+            document.getElementById('view-add').classList.add('hidden');
+            document.getElementById('view-tips').classList.add('hidden');
+            
+            // Unveil the targeted module
+            document.getElementById(viewId).classList.remove('hidden');
+
+            // Reset navigation menu color balancing
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('text-primary', 'bg-secondary-container', 'border', 'border-primary');
+                btn.classList.add('text-secondary');
+            });
+
+            // Highlight current button selector
+            const activeBtn = event.currentTarget;
+            activeBtn.classList.remove('text-secondary');
+            activeBtn.classList.add('text-primary', 'bg-secondary-container', 'border', 'border-primary');
+        }
+
+        // Mock Hardware Simulation Hooks
+        function startScanner(btn) {
+            const container = btn.closest('section').querySelector('.aspect-video');
+            container.classList.add('scanning');
+            btn.innerText = "Capturing Barcode Matrix...";
+            setTimeout(() => {
+                container.classList.remove('scanning');
+                btn.innerText = "Trigger Camera Capture";
+                alert("Barcode Intercepted: 040000000327 🍕");
+            }, 2500);
+        }
+
+        const BACKEND_URL = "http://127.0.0.1:8000";
+
+// 1. DYNAMICALLY LOAD THE EXPIRING INVENTORY MATRIX (GET FETCH)
+async function loadExpiringInventory(userId = 1) {
+    const listContainer = document.getElementById("inventory-list-target");
+    
+    try {
+        const response = await fetch(`${BACKEND_URL}/inventory/expiring/${userId}?limit=10`);
+        if (!response.ok) throw new Error("Failed to reach server");
+        
+        const data = await response.json();
+        
+        // Clear out the mock placeholder item
+        listContainer.innerHTML = "";
+        
+        // If user freezer is empty, render an empty state indicator
+        if (data.items.length === 0) {
+            listContainer.innerHTML = `
+                <div class="p-6 text-center text-secondary font-medium">
+                    🐧 Your freezer is completely empty! Scan an item to begin.
+                </div>`;
+            return;
+        }
+        
+        // Map over the real backend SQL row records and build html cards on the fly
+        data.items.forEach(item => {
+            // Dynamically apply accent color border indicators based on your custom SQL CASE tiers
+            let borderClass = "bg-primary"; // Default safe tier
+            if (item.status_urgency === "Expired") borderClass = "bg-error";
+            if (item.status_urgency === "Critical") borderClass = "bg-brand-orange";
+            if (item.status_urgency === "Soon") borderClass = "bg-primary-container";
+            if (item.status_urgency === "Good") borderClass = "bg-secondary";
+
+            const cardHtml = `
+                <div class="glass-panel rounded-xl p-4 flex items-center justify-between hover:bg-secondary-container/40 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-secondary-container/50 border-2 border-primary flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined">kitchen</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-primary">${item.product_name}</h4>
+                            <p class="text-xs font-semibold text-secondary">${item.brand} • ${item.location_name}</p>
+                            <p class="text-[11px] text-outline font-bold mt-0.5">Days Left: ${item.days_remaining}</p>
+                        </div>
+                    </div>
+                    <div class="text-right flex flex-col items-end gap-2">
+                        <span class="inline-block border border-primary px-3 py-1 rounded-full font-bold text-xs uppercase ${borderClass} text-white">
+                            ${item.status_urgency}
+                        </span>
+                        <span class="text-xs font-bold text-secondary">Qty: ${item.quantity}</span>
+                    </div>
+                </div>
+            `;
+            listContainer.insertAdjacentHTML("beforeend", cardHtml);
+        });
+        
+    } catch (error) {
+        console.error("Fetch failure:", error);
+        listContainer.innerHTML = `
+            <div class="p-6 text-center text-error font-bold">
+                ⚠️ Connection Lost to Proxmox/Tailscale Backend Server
+            </div>`;
+    }
+}
+
+// 2. LOG NEW SCAN/MANUAL ITEMS DIRECTLY TO THE MYSQL ENGINE (POST FETCH)
+async function submitNewItem() {
+    const upc = document.getElementById("form-upc").value;
+    const qty = document.getElementById("form-qty").value;
+    const date = document.getElementById("form-date").value;
+    
+    if (!upc || !qty || !date) {
+        alert("Please fill out all schema parameters before committing.");
+        return;
+    }
+    
+    // Construct payload mapped directly to your FastAPI Pydantic schema model
+    const payload = {
+        user_id: 1,
+        quantity: parseInt(qty),
+        expiration_date: date,
+        upc: upc,
+        location_id: 1, // Maps to standard Freezer slot
+        unit_id: 1      // Maps to default unit count
+    };
+    
+    try {
+        const response = await fetch(`${BACKEND_URL}/inventory/add`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        if (response.status === 201) {
+            alert("Product synchronized and inventory logged successfully! 🐧");
+            // Reset input values
+            document.getElementById("form-upc").value = "";
+            document.getElementById("form-date").value = "";
+            // Switch view over to matrix dashboard to confirm cache write
+            navigateTo('view-freezer');
+        } else {
+            const errData = await response.json();
+            alert(`Database Write Failure: ${errData.detail}`);
+        }
+    } catch (error) {
+        alert("Failed to reach API network engine.");
+    }
+}
+
+function navigateTo(viewId) {
+    // Hide all active screen modules
+    document.getElementById('view-home').classList.add('hidden');
+    document.getElementById('view-freezer').classList.add('hidden');
+    document.getElementById('view-add').classList.add('hidden');
+    document.getElementById('view-tips').classList.add('hidden');
+    
+    // Unveil the targeted module
+    document.getElementById(viewId).classList.remove('hidden');
+
+    // NEW TRIGGER: If switching to freezer panel, refresh data live from API
+    if (viewId === 'view-freezer') {
+        loadExpiringInventory(1); // Loads for user_id = 1
+    }
+
+    // Reset navigation menu color balancing
+    const buttons = document.querySelectorAll('.nav-btn');
+    buttons.forEach(btn => {
+        btn.classList.remove('text-primary', 'bg-secondary-container', 'border', 'border-primary');
+        btn.classList.add('text-secondary');
+    });
+
+    // Highlight current button selector
+    const activeBtn = event.currentTarget;
+    if (activeBtn && activeBtn.classList) {
+        activeBtn.classList.remove('text-secondary');
+        activeBtn.classList.add('text-primary', 'bg-secondary-container', 'border', 'border-primary');
+    }
+}
+    </script>
+</body>
+</html>
