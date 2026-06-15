@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "232102461818",
+    "project_id": "freezer-penguin-70dc6",
+    "storage_bucket": "freezer-penguin-70dc6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:232102461818:android:81343d43c61ac5e55596c3",
+        "android_client_info": {
+          "package_name": "com.freezerpenguin.frontend_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMX6U7eZC7B-8j9cU9ntbD8fogkyvBSNs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
