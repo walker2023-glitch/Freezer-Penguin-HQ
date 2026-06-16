@@ -40,7 +40,7 @@ class AppStrings {
   static const Map<String, String> zhCantonese = {
     'app_title': '雪櫃企鵝',
     'welcome_msg': '保持冰爽！',
-    'sub_welcome': '依家check吓你個雪櫃嘅狀態：',
+    'sub_welcome': '依家checkaka你個雪櫃嘅狀態：',
     'tab_home': '首頁',
     'tab_inventory': '冰層庫存',
     'tab_intake': '入庫門戶',
@@ -86,7 +86,6 @@ class _FreezerPenguinAppState extends State<FreezerPenguinApp> {
 
   @override
   Widget build(BuildContext context) {
-    // Dynamic styling layout assignment
     final Color currentBackground = _isAntarcticMode ? AppColors.antarcticBackground : AppColors.crispKitchenBackground;
     final Color currentSurface = _isAntarcticMode ? AppColors.antarcticSurface : AppColors.crispKitchenSurface;
 
@@ -116,25 +115,18 @@ class _FreezerPenguinAppState extends State<FreezerPenguinApp> {
   }
 }
 
-// --- Professional Core Design System Tokens ---
 class AppColors {
-  // Mode Layer 1: Antarctic Mode (Soft Ice Blue Layouts)
   static const Color antarcticBackground = Color(0xFFD1E6F7);
   static const Color antarcticSurface = Color(0xFFA9D2F0);
-
-  // Mode Layer 2: Crisp Kitchen Mode (High Contrast Clean Studio Layouts)
   static const Color crispKitchenBackground = Color(0xFFF4F9FD);
   static const Color crispKitchenSurface = Color(0xFFE1EFFB);
-
-  // Constants
   static const Color surfaceLowest = Color(0xFFFFFFFF);
-  static const Color outline = Color(0xFF05162E); // 2px Border Navy
-  static const Color primary = Color(0xFF00A3FF); // Glacier Blue Accent
-  static const Color orange = Color(0xFFF37321);  // Beak Orange Warning Accent
+  static const Color outline = Color(0xFF05162E); 
+  static const Color primary = Color(0xFF00A3FF); 
+  static const Color orange = Color(0xFFF37321);  
   static const Color textVariant = Color(0xFF2D5B88);
 }
 
-// --- Main Navigation Container ---
 class MainNavigationScreen extends StatefulWidget {
   final bool isAntarcticMode;
   final VoidCallback onThemeToggle;
@@ -155,10 +147,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Dynamically assigns the target translation dictionary pack
     final strings = _isCantonese ? AppStrings.zhCantonese : AppStrings.en;
 
-    // Isolate structural screen generation logic to accept the layout token array
     final List<Widget> views = [
       HomeDashboardView(strings: strings),
       IceFloeView(strings: strings),
@@ -238,7 +228,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 }
 
-// --- Reusable Structural Bento Component ---
 class BentoCard extends StatelessWidget {
   final Widget child;
   final Color? backgroundColor;
@@ -265,7 +254,6 @@ class BentoCard extends StatelessWidget {
   }
 }
 
-// --- 1. Home Dashboard Core View ---
 class HomeDashboardView extends StatelessWidget {
   final Map<String, String> strings;
   const HomeDashboardView({super.key, required this.strings});
@@ -280,7 +268,6 @@ class HomeDashboardView extends StatelessWidget {
         Text(strings['sub_welcome']!, style: const TextStyle(color: AppColors.textVariant, fontSize: 16)),
         const SizedBox(height: 24),
         
-        // Capacity Management Component
         BentoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,7 +330,6 @@ class HomeDashboardView extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         
-        // Dynamic Operational Metrics Row
         Row(
           children: [
             Expanded(
@@ -382,7 +368,6 @@ class HomeDashboardView extends StatelessWidget {
   }
 }
 
-// --- 2. The Ice Floe View ---
 class IceFloeView extends StatelessWidget {
   final Map<String, String> strings;
   const IceFloeView({super.key, required this.strings});
@@ -472,7 +457,6 @@ class IceFloeView extends StatelessWidget {
   }
 }
 
-// --- 3. Intake Portal View ---
 class IntakePortalView extends StatefulWidget {
   final Map<String, String> strings;
   const IntakePortalView({super.key, required this.strings});
@@ -484,6 +468,18 @@ class IntakePortalView extends StatefulWidget {
 class _IntakePortalViewState extends State<IntakePortalView> {
   int _selectedMode = 1;
 
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _qtyController = TextEditingController(text: '1');
+  final TextEditingController _zoneController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _qtyController.dispose();
+    _zoneController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -493,7 +489,6 @@ class _IntakePortalViewState extends State<IntakePortalView> {
         Text(widget.strings['intake_sub']!, style: const TextStyle(color: AppColors.textVariant, fontSize: 16)),
         const SizedBox(height: 24),
         
-        // High-Fidelity Custom Segmentation Component
         Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
@@ -511,7 +506,6 @@ class _IntakePortalViewState extends State<IntakePortalView> {
         ),
         const SizedBox(height: 24),
 
-        // Native Data Entry Form
         BentoCard(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -519,7 +513,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
             children: [
               Text(widget.strings['form_name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              _buildTextField(widget.strings['hint_name']!),
+              _buildTextField(widget.strings['hint_name']!, controller: _nameController),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -529,7 +523,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
                       children: [
                         Text(widget.strings['form_qty']!, style: const TextStyle(fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
-                        _buildTextField('1', textAlign: TextAlign.center),
+                        _buildTextField('1', textAlign: TextAlign.center, controller: _qtyController),
                       ],
                     ),
                   ),
@@ -540,7 +534,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
                       children: [
                         Text(widget.strings['form_zone']!, style: const TextStyle(fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
-                        _buildTextField(widget.strings['hint_zone']!),
+                        _buildTextField(widget.strings['hint_zone']!, controller: _zoneController),
                       ],
                     ),
                   ),
@@ -550,7 +544,24 @@ class _IntakePortalViewState extends State<IntakePortalView> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    final Map<String, dynamic> itemPayload = {
+                      "name": _nameController.text,
+                      "quantity": int.tryParse(_qtyController.text) ?? 1,
+                      "storage_zone": _zoneController.text,
+                      "timestamp": DateTime.now().toIso8601String(),
+                    };
+
+                    print("🚀 TARGET BACKEND REST ROUTE: $backendUrl");
+                    print("📦 OUTBOUND HARVESTED PAYLOAD: $itemPayload");
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Captured Entry: ${_nameController.text}"),
+                        backgroundColor: AppColors.primary,
+                      ),
+                    );
+                  },
                   icon: const Icon(Icons.inventory_2, color: Colors.white),
                   label: Text(widget.strings['btn_add']!, style: GoogleFonts.quicksand(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                   style: ElevatedButton.styleFrom(
@@ -602,8 +613,9 @@ class _IntakePortalViewState extends State<IntakePortalView> {
     );
   }
 
-  Widget _buildTextField(String hint, {TextAlign textAlign = TextAlign.start}) {
+  Widget _buildTextField(String hint, {TextAlign textAlign = TextAlign.start, TextEditingController? controller}) {
     return TextField(
+      controller: controller,
       textAlign: textAlign,
       decoration: InputDecoration(
         hintText: hint,
@@ -623,7 +635,6 @@ class _IntakePortalViewState extends State<IntakePortalView> {
   }
 }
 
-// --- 4. Penguin Tips View ---
 class PenguinTipsView extends StatelessWidget {
   final Map<String, String> strings;
   const PenguinTipsView({super.key, required this.strings});
