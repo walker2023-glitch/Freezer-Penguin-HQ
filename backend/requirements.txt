@@ -1,0 +1,46 @@
+# Freezer Penguin Backend — Python dependency manifest
+# Install: pip install -r requirements.txt
+# Python: 3.11+
+
+# ---------------------------------------------------------------------------
+# Web framework & ASGI server
+# ---------------------------------------------------------------------------
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9       # Required for UploadFile / multipart form support
+
+# ---------------------------------------------------------------------------
+# Database
+# ---------------------------------------------------------------------------
+sqlalchemy>=2.0.0
+pymysql>=1.1.0                # MySQL driver used by SQLAlchemy engine
+cryptography>=42.0.0          # Required by PyMySQL for caching_sha2_password auth
+
+# ---------------------------------------------------------------------------
+# Data validation
+# ---------------------------------------------------------------------------
+pydantic>=2.7.0
+
+# ---------------------------------------------------------------------------
+# Environment / configuration
+# ---------------------------------------------------------------------------
+python-dotenv>=1.0.0          # Loads backend/.env into os.environ at startup
+
+# ---------------------------------------------------------------------------
+# HTTP client — Feature 1.1 (Open Food Facts barcode lookup)
+# ---------------------------------------------------------------------------
+httpx>=0.27.0
+
+# ---------------------------------------------------------------------------
+# AI / ML — Feature 1.2 (Gemini Vision leftover ingestion)
+# ---------------------------------------------------------------------------
+google-genai>=1.0.0           # Google Gen AI SDK (modern unified client).
+                              # Replaces deprecated google-generativeai.
+                              # Provides genai.Client(), client.aio.models.generate_content(),
+                              # and types.Part.from_bytes() for inline image data.
+
+# ---------------------------------------------------------------------------
+# Development & CI — linting and test runner
+# ---------------------------------------------------------------------------
+flake8>=7.0.0                 # PEP 8 style enforcement; run via CI lint gate
+pytest>=8.0.0                 # Test runner; executes backend/app/tests/

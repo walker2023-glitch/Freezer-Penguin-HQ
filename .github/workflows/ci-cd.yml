@@ -1,0 +1,142 @@
+name: Freezer Penguin — CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# ---------------------------------------------------------------------------
+# Environment variables available to every job.
+# GEMINI_API_KEY is set to a non-empty placeholder so the genai.Client()
+# constructor in services_gemini_vision.py doesn't raise at import time.
+# No real API calls are made during the test suite; the value is never used.
+# DATABASE_URL points to an in-process SQLite DB so SQLAlchemy engine creation
+# succeeds without a live MySQL instance.
+# ---------------------------------------------------------------------------
+env:
+  GEMINI_API_KEY: test-ci-placeholder
+  DATABASE_URL: sqlite:///./test_ci.db
+  PYTHONPATH: backend
+
+# ===========================================================================
+# Job A — Setup: Checkout source tree and provision Python 3.11
+# ===========================================================================
+jobs:
+  setup:
+    name: "A · Setup — Checkout & Python 3.11"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source tree
+        uses: actions/checkout@v4
+
+      - name: Provision Python 3.11 runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+  # =========================================================================
+  # Job B — Build: Install all application dependencies
+  # =========================================================================
+  build:
+    name: "B · Build — Install Dependencies"
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout source tree
+        uses: actions/checkout@v4
+
+      - name: Provision Python 3.11 runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+
+  # =========================================================================
+  # Job C — Lint: Enforce PEP 8 syntax standards via flake8
+  # =========================================================================
+  lint:
+    name: "C · Lint — flake8 backend/app/"
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout source tree
+        uses: actions/checkout@v4
+
+      - name: Provision Python 3.11 runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run flake8 lint sweep
+        run: |
+          flake8 backend/app/ \
+            --max-line-length=120 \
+            --exclude=backend/app/tests,__pycache__,.git \
+            --count \
+            --statistics
+
+  # =========================================================================
+  # Job D — Test: Execute automated regression sweeps via pytest
+  # =========================================================================
+  test:
+    name: "D · Test — pytest regression suite"
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout source tree
+        uses: actions/checkout@v4
+
+      - name: Provision Python 3.11 runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run pytest test suite
+        run: |
+          pytest backend/app/tests/ \
+            --tb=short \
+            --verbose
+
+  # =========================================================================
+  # Job E+F — Package: Zip compiled backend, then upload artifact
+  # =========================================================================
+  package:
+    name: "E+F · Package — Zip & Upload Artifact"
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout source tree
+        uses: actions/checkout@v4
+
+      - name: E · Zip backend application into deployable archive
+        run: |
+          zip -r backend-build-artifact.zip backend/ \
+            --exclude "backend/.env" \
+            --exclude "backend/__pycache__/*" \
+            --exclude "backend/app/__pycache__/*" \
+            --exclude "*.pyc" \
+            --exclude "*.pyo"
+
+      - name: F · Upload artifact to GitHub run history
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build-artifact
+          path: backend-build-artifact.zip
+          retention-days: 30
