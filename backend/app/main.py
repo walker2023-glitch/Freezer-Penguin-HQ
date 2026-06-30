@@ -17,16 +17,14 @@ Gemini API key:
 
 import logging
 import os
-from datetime import datetime
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import engine
 from app import models
 from app.routers_inventory import router as inventory_router
 from app.routers_vision_ingestion import router as vision_router
-from app.schemas import FoodItemCreate, FoodItemResponse
 
 logger = logging.getLogger(__name__)
 
@@ -56,10 +54,10 @@ app = FastAPI(
     title="Freezer Penguin Intelligent Stewardship API",
     description=(
         "REST API platform handling intelligent freezer inventory tracking "
-        "via barcode ingestion (Feature 1.1) and Gemini Vision leftover "
-        "ingestion (Feature 1.2)."
+        "via barcode ingestion (Feature 1.1), Gemini Vision leftover "
+        "ingestion (Feature 1.2), and inventory fetch (Feature 1.0)."
     ),
-    version="1.2.0",
+    version="1.2.1",
 )
 
 # ---------------------------------------------------------------------------
@@ -92,34 +90,10 @@ def health_check():
     return {
         "status": "online",
         "system": "Freezer Penguin Backend Platform",
-        "version": "1.2.0",
-        "features_active": ["1.1 Barcode Ingestion", "1.2 Gemini Vision Ingestion"],
-    }
-
-
-# ---------------------------------------------------------------------------
-# Legacy mock endpoint — retained for Pydantic contract smoke-testing.
-# No database I/O. Superseded by POST /api/v1/inventory/barcode/{upc}.
-# ---------------------------------------------------------------------------
-@app.post(
-    "/api/v1/items",
-    response_model=FoodItemResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="[MOCK] Validate inbound mobile payload configurations",
-    tags=["Dev / Mocks"],
-)
-def test_validate_item(payload: FoodItemCreate):
-    """
-    Temporary mock that proves the Pydantic data contract intercepts and
-    serializes inbound payloads (including the nullable upc field) correctly.
-    No database write occurs. Superseded by POST /api/v1/inventory/barcode/{upc}.
-    """
-    return {
-        "id": 101,
-        "name": payload.name,
-        "quantity": payload.quantity,
-        "storage_zone": payload.storage_zone,
-        "upc": payload.upc,
-        "notes": payload.notes,
-        "timestamp": datetime.utcnow(),
+        "version": "1.2.1",
+        "features_active": [
+            "1.0 Inventory Fetch",
+            "1.1 Barcode Ingestion",
+            "1.2 Gemini Vision Ingestion",
+        ],
     }

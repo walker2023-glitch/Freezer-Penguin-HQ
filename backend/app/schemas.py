@@ -124,6 +124,72 @@ class BarcodeIngestionResponse(BaseModel):
         from_attributes = True
 
 
+class InventoryItemResponse(BaseModel):
+    """
+    Outbound contract returned by GET /api/v1/inventory/{user_id}.
+
+    Represents a single active row from inventory_items LEFT JOINed with
+    barcode_master for product metadata. product_name and brand are None
+    for vision-scanned items (UPC=None — no barcode_master row exists).
+    Items are returned ordered by expiration_date ASC so the most urgent
+    items appear first in the Flutter Ice Floe view.
+
+    GR-1 compliance: upc is always Optional — vision-scanned items carry None.
+    """
+
+    item_id: int = Field(
+        ...,
+        description="Auto-increment PK of the inventory_items row",
+        json_schema_extra={"example": 42},
+    )
+    user_id: int = Field(
+        ...,
+        description="FK reference to Users.user_id",
+        json_schema_extra={"example": 1},
+    )
+    upc: Optional[str] = Field(
+        None,
+        description="UPC barcode string — nullable per GR-1 for vision-scanned items",
+        json_schema_extra={"example": "012345678912"},
+    )
+    product_name: Optional[str] = Field(
+        None,
+        description=(
+            "Product name resolved from barcode_master JOIN. "
+            "None for vision-scanned items (no barcode_master row)."
+        ),
+        json_schema_extra={"example": "Organic Whole Milk"},
+    )
+    brand: Optional[str] = Field(
+        None,
+        description="Brand name from barcode_master JOIN. None for vision-scanned items.",
+        json_schema_extra={"example": "Horizon Organic"},
+    )
+    quantity: int = Field(
+        ...,
+        description="Current item count at this storage location",
+        json_schema_extra={"example": 2},
+    )
+    expiration_date: date = Field(
+        ...,
+        description="Item expiration date (ISO-8601). Result set ordered ASC by this field.",
+        json_schema_extra={"example": "2026-09-01"},
+    )
+    location_id: int = Field(
+        ...,
+        description="FK reference to storage_locations.location_id",
+        json_schema_extra={"example": 1},
+    )
+    unit_id: int = Field(
+        ...,
+        description="FK reference to Units.unit_id",
+        json_schema_extra={"example": 1},
+    )
+
+    class Config:
+        from_attributes = True
+
+
 # ---------------------------------------------------------------------------
 # Feature 1.2 — Gemini Vision Leftover Ingestion schemas
 # ---------------------------------------------------------------------------

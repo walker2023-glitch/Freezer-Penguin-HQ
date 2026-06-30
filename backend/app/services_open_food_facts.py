@@ -28,6 +28,93 @@ _OFF_URL = "https://world.openfoodfacts.org/api/v0/product/{upc}.json"
 _OFF_HEADERS = {"User-Agent": "FreezerPenguin/1.0"}
 _OFF_TIMEOUT = 10.0
 
+# ---------------------------------------------------------------------------
+# Freezer shelf-life lookup — category-tag substring → days.
+#
+# Open Food Facts `categories_tags` values are normalised lowercase strings
+# like "en:meats", "en:frozen-foods", "en:chicken-breasts". We join all tags
+# into a single space-separated string and scan for each keyword in order;
+# the first match wins. This approach is deliberately conservative: unknown
+# categories fall back to _SHELF_LIFE_FALLBACK_DAYS (90 days) rather than
+# silently assigning an arbitrarily long window that could mask food safety
+# risks.
+#
+# Sources: USDA FoodKeeper, FDA guidelines for frozen food storage.
+# ---------------------------------------------------------------------------
+_SHELF_LIFE_FALLBACK_DAYS: int = 90
+
+_CATEGORY_SHELF_LIFE_MAP: list[tuple[str, int]] = [
+    # --- Short window: dairy products degrade fastest even when frozen ------
+    ("dairy", 30),
+    ("milk", 30),
+    ("yogurt", 30),
+    ("butter", 90),
+    ("cheese", 30),
+    # --- Proteins: raw meat, poultry, seafood --------------------------------
+    ("seafood", 90),
+    ("fish", 90),
+    ("shellfish", 90),
+    ("poultry", 90),
+    ("chicken", 90),
+    ("turkey", 90),
+    ("beef", 90),
+    ("pork", 90),
+    ("lamb", 90),
+    ("meat", 90),
+    # --- Prepared / cooked items ---------------------------------------------
+    ("prepared-meal", 90),
+    ("ready-meal", 90),
+    ("soup", 90),
+    ("sauce", 90),
+    ("pizza", 90),
+    ("pasta", 90),
+    # --- Baked goods ---------------------------------------------------------
+    ("bread", 90),
+    ("pastry", 90),
+    ("cake", 90),
+    # --- Produce: vegetables and fruits store well frozen -------------------
+    ("vegetable", 180),
+    ("fruit", 180),
+    # --- Frozen desserts: long-lived at sub-zero ----------------------------
+    ("ice-cream", 180),
+    ("frozen-dessert", 180),
+]
+
+
+def _derive_shelf_life(product: dict) -> int:
+    """
+    Derive a freezer shelf-life estimate (days) from an OFF product dict.
+
+    Resolution order:
+        1. Scan categories_tags values against _CATEGORY_SHELF_LIFE_MAP;
+           first keyword match wins.
+        2. Fall back to _SHELF_LIFE_FALLBACK_DAYS (90 days) when no tag
+           matches — conservative baseline that avoids silent data errors.
+
+    Args:
+        product: Raw OFF product sub-dictionary from the API response.
+
+    Returns:
+        int — positive shelf-life estimate in days.
+    """
+    categories_tags: list = product.get("categories_tags") or []
+    categories_str: str = " ".join(t.lower() for t in categories_tags)
+
+    for keyword, days in _CATEGORY_SHELF_LIFE_MAP:
+        if keyword in categories_str:
+            logger.debug(
+                "Shelf life derived from category tag — keyword=%r → %s days",
+                keyword,
+                days,
+            )
+            return days
+
+    logger.debug(
+        "No category tag match — shelf life falls back to %s days",
+        _SHELF_LIFE_FALLBACK_DAYS,
+    )
+    return _SHELF_LIFE_FALLBACK_DAYS
+
 
 @dataclass
 class OFFProduct:
@@ -119,17 +206,19 @@ async def fetch_product_from_off(upc: str) -> OFFProduct:
     )
 
     brand: Optional[str] = product.get("brands") or None
+    shelf_life: int = _derive_shelf_life(product)
 
     logger.info(
-        "OFF API: product resolved — UPC=%s product_name=%r brand=%r",
+        "OFF API: product resolved — UPC=%s product_name=%r brand=%r shelf_life=%s days",
         upc,
         product_name,
         brand,
+        shelf_life,
     )
 
     return OFFProduct(
         upc=upc,
         product_name=product_name,
         brand=brand,
-        default_shelf_life=None,
+        default_shelf_life=shelf_life,
     )

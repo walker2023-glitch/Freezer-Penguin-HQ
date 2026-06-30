@@ -31,7 +31,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import DBBarcodeMaster, DBCategory, DBInventoryItem
-from app.schemas import BarcodeIngestionResponse
+from app.schemas import BarcodeIngestionResponse, InventoryItemResponse
 from app.services_open_food_facts import fetch_product_from_off
 
 logger = logging.getLogger(__name__)
@@ -315,3 +315,64 @@ async def ingest_barcode_item(
         expiration_date=new_item.expiration_date,
         upserted=False,
     )
+
+
+@router.get(
+    "/{user_id}",
+    response_model=list[InventoryItemResponse],
+    status_code=200,
+    summary="Fetch all inventory items for a user, ordered by soonest expiry",
+    responses={
+        200: {
+            "description": (
+                "Active inventory rows for the given user sorted by expiration_date ASC. "
+                "Returns an empty list when the user has no items — never 404."
+            )
+        },
+    },
+)
+def get_user_inventory(
+    user_id: int,
+    db: Session = Depends(get_db),
+) -> list[InventoryItemResponse]:
+    """
+    Return all inventory_items rows for user_id, LEFT JOINed with barcode_master
+    to resolve product_name and brand for barcode-scanned items.
+
+    Vision-scanned items (UPC=None) have no barcode_master row; their
+    product_name and brand fields will be None in the response (GR-1 compliant).
+
+    Result set is ordered by expiration_date ASC so the most urgent items
+    appear first in the Flutter Ice Floe view.
+    """
+    logger.info("Inventory fetch request — user_id=%s", user_id)
+
+    rows = (
+        db.query(DBInventoryItem, DBBarcodeMaster)
+        .outerjoin(DBBarcodeMaster, DBInventoryItem.UPC == DBBarcodeMaster.UPC)
+        .filter(DBInventoryItem.user_id == user_id)
+        .order_by(DBInventoryItem.expiration_date.asc())
+        .all()
+    )
+
+    logger.info(
+        "Inventory fetch complete — user_id=%s rows_returned=%s",
+        user_id,
+        len(rows),
+    )
+
+    return [
+        InventoryItemResponse(
+            item_id=item.item_id,
+            user_id=item.user_id,
+            upc=item.UPC,
+            product_name=catalog.product_name if catalog else None,
+            brand=catalog.brand if catalog else None,
+            quantity=item.quantity or 0,
+            expiration_date=item.expiration_date,
+            location_id=item.location_id,
+            unit_id=item.unit_id,
+        )
+        for item, catalog in rows
+    ]
+
