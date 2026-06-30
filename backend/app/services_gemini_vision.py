@@ -33,7 +33,6 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 from google import genai
 from google.genai import types
@@ -82,7 +81,7 @@ _client: genai.Client = genai.Client()
 _GENERATION_CONFIG = types.GenerateContentConfig(
     temperature=0.1,                       # Deterministic structured output
     max_output_tokens=512,                 # Sufficient for the JSON schema; prevents runaway responses
-    response_mime_type="application/json", # JSON mode: bypasses markdown fence stripping
+    response_mime_type="application/json",  # JSON mode: bypasses markdown fence stripping
 )
 
 
