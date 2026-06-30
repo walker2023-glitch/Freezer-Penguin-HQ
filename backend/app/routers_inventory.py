@@ -375,4 +375,3 @@ def get_user_inventory(
         )
         for item, catalog in rows
     ]
-    
