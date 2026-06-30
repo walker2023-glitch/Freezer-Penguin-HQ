@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // Your designated machine network target configurations
-const String backendUrl = "http://100.81.95.123:8080/api";
+const String backendUrl = "http://100.81.95.123:8080/api/v1";
 
 class AppStrings {
   static const Map<String, String> en = {
