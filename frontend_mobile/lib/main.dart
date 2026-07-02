@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 
-// Your designated machine network target configurations
-const String backendUrl = "http://100.81.95.123:8080/api/v1";
+// Network target — HTTP only to avoid local self-signed TLS certificate blocks
+const String backendUrl = "http://127.0.0.1:8000/api/v1";
 
 class AppStrings {
   static const Map<String, String> en = {
@@ -82,7 +85,7 @@ class FreezerPenguinApp extends StatefulWidget {
 }
 
 class _FreezerPenguinAppState extends State<FreezerPenguinApp> {
-  bool _isAntarcticMode = true; // Tracks theme mode state
+  bool _isAntarcticMode = true;
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +107,6 @@ class _FreezerPenguinAppState extends State<FreezerPenguinApp> {
           primary: AppColors.primary,
           secondary: AppColors.orange,
           surface: currentSurface,
-          background: currentBackground,
         ),
       ),
       home: MainNavigationScreen(
@@ -121,9 +123,9 @@ class AppColors {
   static const Color crispKitchenBackground = Color(0xFFF4F9FD);
   static const Color crispKitchenSurface = Color(0xFFE1EFFB);
   static const Color surfaceLowest = Color(0xFFFFFFFF);
-  static const Color outline = Color(0xFF05162E); 
-  static const Color primary = Color(0xFF00A3FF); 
-  static const Color orange = Color(0xFFF37321);  
+  static const Color outline = Color(0xFF05162E);
+  static const Color primary = Color(0xFF00A3FF);
+  static const Color orange = Color(0xFFF37321);
   static const Color textVariant = Color(0xFF2D5B88);
 }
 
@@ -267,7 +269,7 @@ class HomeDashboardView extends StatelessWidget {
         const SizedBox(height: 4),
         Text(strings['sub_welcome']!, style: const TextStyle(color: AppColors.textVariant, fontSize: 16)),
         const SizedBox(height: 24),
-        
+
         BentoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,7 +331,7 @@ class HomeDashboardView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        
+
         Row(
           children: [
             Expanded(
@@ -362,15 +364,44 @@ class HomeDashboardView extends StatelessWidget {
               ),
             ),
           ],
-        )
+        ),
       ],
     );
   }
 }
 
-class IceFloeView extends StatelessWidget {
+// ---------------------------------------------------------------------------
+// IceFloeView — refactored to StatefulWidget; FutureBuilder drives live data
+// ---------------------------------------------------------------------------
+
+class IceFloeView extends StatefulWidget {
   final Map<String, String> strings;
   const IceFloeView({super.key, required this.strings});
+
+  @override
+  State<IceFloeView> createState() => _IceFloeViewState();
+}
+
+class _IceFloeViewState extends State<IceFloeView> {
+  late Future<List<dynamic>> _inventoryFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _inventoryFuture = _fetchInventory();
+  }
+
+  Future<List<dynamic>> _fetchInventory() async {
+    final response = await http
+        .get(Uri.parse('$backendUrl/inventory/1'))
+        .timeout(const Duration(seconds: 10));
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    } else {
+      throw Exception('Server returned ${response.statusCode}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -383,36 +414,86 @@ class IceFloeView extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(strings['tab_inventory']!, style: GoogleFonts.quicksand(fontSize: 28, fontWeight: FontWeight.bold)),
-                Text(strings['inv_sub']!, style: const TextStyle(color: AppColors.textVariant, fontSize: 16)),
+                Text(widget.strings['tab_inventory']!, style: GoogleFonts.quicksand(fontSize: 28, fontWeight: FontWeight.bold)),
+                Text(widget.strings['inv_sub']!, style: const TextStyle(color: AppColors.textVariant, fontSize: 16)),
               ],
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                border: Border.all(color: AppColors.outline, width: 2),
-                borderRadius: BorderRadius.circular(20),
+            GestureDetector(
+              onTap: () => setState(() => _inventoryFuture = _fetchInventory()),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  border: Border.all(color: AppColors.outline, width: 2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.filter_list, color: Colors.white, size: 18),
+                    const SizedBox(width: 4),
+                    Text(widget.strings['btn_filter']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ],
+                ),
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.filter_list, color: Colors.white, size: 18),
-                  const SizedBox(width: 4),
-                  Text(strings['btn_filter']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            )
+            ),
           ],
         ),
         const SizedBox(height: 24),
-        _buildInventoryItem(Icons.set_meal, 'Wild Caught Salmon', 'Qty: 2 • Bottom Drawer', strings['lbl_expiring']!, AppColors.orange, Icons.warning),
-        const SizedBox(height: 16),
-        _buildInventoryItem(Icons.icecream, 'Vanilla Bean Ice Cream', 'Qty: 1 • Door Shelf', 'Critical', AppColors.primary, Icons.notifications_active),
+        FutureBuilder<List<dynamic>>(
+          future: _inventoryFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.only(top: 48),
+                child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              );
+            }
+            if (snapshot.hasError) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 32),
+                child: Center(
+                  child: Text(
+                    'Could not load inventory.\n${snapshot.error}',
+                    style: const TextStyle(color: AppColors.textVariant, fontSize: 15),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              );
+            }
+            final items = snapshot.data ?? [];
+            if (items.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.only(top: 48),
+                child: Center(
+                  child: Text(
+                    'Your freezer is empty.\nScan a barcode or use Vision to add items!',
+                    style: TextStyle(color: AppColors.textVariant, fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              );
+            }
+            return Column(
+              children: [
+                for (int i = 0; i < items.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 16),
+                  _buildInventoryItem(items[i] as Map<String, dynamic>),
+                ],
+              ],
+            );
+          },
+        ),
       ],
     );
   }
 
-  Widget _buildInventoryItem(IconData icon, String title, String subtitle, String status, Color statusColor, IconData statusIcon) {
+  Widget _buildInventoryItem(Map<String, dynamic> item) {
+    final String name = (item['product_name'] as String?) ??
+        (item['upc'] != null ? 'UPC: ${item['upc']}' : 'Unknown Item');
+    final int qty = (item['quantity'] as int?) ?? 1;
+    final String expiry = (item['expiration_date'] as String?) ?? '—';
+    final String subtitle = 'Qty: $qty  •  Exp: $expiry';
+
     return BentoCard(
       child: Row(
         children: [
@@ -424,14 +505,14 @@ class IceFloeView extends StatelessWidget {
               border: Border.all(color: AppColors.outline, width: 2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 32, color: AppColors.outline),
+            child: const Icon(Icons.kitchen, size: 32, color: AppColors.outline),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.quicksand(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(name, style: GoogleFonts.quicksand(fontSize: 18, fontWeight: FontWeight.bold)),
                 Text(subtitle, style: const TextStyle(color: AppColors.textVariant, fontWeight: FontWeight.w600)),
               ],
             ),
@@ -439,15 +520,15 @@ class IceFloeView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: statusColor,
+              color: AppColors.orange,
               border: Border.all(color: AppColors.outline, width: 2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               children: [
-                Icon(statusIcon, color: Colors.white, size: 14),
+                const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 14),
                 const SizedBox(width: 4),
-                Text(status, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                Text(widget.strings['lbl_expiring']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
               ],
             ),
           ),
@@ -456,6 +537,10 @@ class IceFloeView extends StatelessWidget {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// IntakePortalView — wired to backend for Barcode (mode 0) and Vision (mode 2)
+// ---------------------------------------------------------------------------
 
 class IntakePortalView extends StatefulWidget {
   final Map<String, String> strings;
@@ -467,17 +552,128 @@ class IntakePortalView extends StatefulWidget {
 
 class _IntakePortalViewState extends State<IntakePortalView> {
   int _selectedMode = 1;
+  bool _isLoading = false;
 
+  // Mode 1: Manual form controllers
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _qtyController = TextEditingController(text: '1');
   final TextEditingController _zoneController = TextEditingController();
+
+  // Mode 0: Barcode UPC input controller
+  final TextEditingController _upcController = TextEditingController();
+
+  // Mode 2: Vision — image picker state
+  final ImagePicker _imagePicker = ImagePicker();
+  String? _pickedImageName;
 
   @override
   void dispose() {
     _nameController.dispose();
     _qtyController.dispose();
     _zoneController.dispose();
+    _upcController.dispose();
     super.dispose();
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red.shade700 : AppColors.primary,
+      ),
+    );
+  }
+
+  // Mode 0 — POST /inventory/barcode/{upc}
+  Future<void> _submitBarcode() async {
+    final upc = _upcController.text.trim();
+    if (upc.isEmpty) {
+      _showSnackBar('Please enter a UPC barcode number.', isError: true);
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$backendUrl/inventory/barcode/$upc?user_id=1&location_id=1&unit_id=1'),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final name = (data['product_name'] as String?) ?? 'Item';
+        _showSnackBar('Added: $name');
+        _upcController.clear();
+      } else {
+        final body = jsonDecode(response.body) as Map<String, dynamic>?;
+        final detail = body?['detail']?.toString() ?? 'Unknown error';
+        _showSnackBar('Error ${response.statusCode}: $detail', isError: true);
+      }
+    } catch (e) {
+      _showSnackBar('Connection failed. Check your network and try again.', isError: true);
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  // Mode 2 — multipart POST /inventory/scan-leftover
+  Future<void> _pickAndSubmitVision() async {
+    final XFile? image = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (image == null) return;
+
+    setState(() {
+      _pickedImageName = image.name;
+      _isLoading = true;
+    });
+
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$backendUrl/inventory/scan-leftover?user_id=1&location_id=1&unit_id=1'),
+      );
+      request.files.add(await http.MultipartFile.fromPath('image', image.path));
+
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final name = (data['product_name'] as String?) ?? 'Item';
+        _showSnackBar('Scanned: $name');
+        setState(() => _pickedImageName = null);
+      } else {
+        final body = jsonDecode(response.body) as Map<String, dynamic>?;
+        final detail = body?['detail']?.toString() ?? 'Unknown error';
+        _showSnackBar('Error ${response.statusCode}: $detail', isError: true);
+      }
+    } catch (e) {
+      _showSnackBar('Connection failed. Check your network and try again.', isError: true);
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  // Mode 1 — Manual form (no dedicated backend endpoint; captured locally)
+  void _submitManual() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Captured Entry: ${_nameController.text}'),
+        backgroundColor: AppColors.primary,
+      ),
+    );
+  }
+
+  Future<void> _handleSubmit() async {
+    switch (_selectedMode) {
+      case 0:
+        await _submitBarcode();
+        break;
+      case 2:
+        await _pickAndSubmitVision();
+        break;
+      default:
+        _submitManual();
+    }
   }
 
   @override
@@ -488,7 +684,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
         Text(widget.strings['tab_intake']!, style: GoogleFonts.quicksand(fontSize: 28, fontWeight: FontWeight.bold)),
         Text(widget.strings['intake_sub']!, style: const TextStyle(color: AppColors.textVariant, fontSize: 16)),
         const SizedBox(height: 24),
-        
+
         Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
@@ -511,75 +707,137 @@ class _IntakePortalViewState extends State<IntakePortalView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(widget.strings['form_name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              _buildTextField(widget.strings['hint_name']!, controller: _nameController),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(widget.strings['form_qty']!, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        _buildTextField('1', textAlign: TextAlign.center, controller: _qtyController),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(widget.strings['form_zone']!, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8),
-                        _buildTextField(widget.strings['hint_zone']!, controller: _zoneController),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              ..._buildModeContent(),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    final Map<String, dynamic> itemPayload = {
-                      "name": _nameController.text,
-                      "quantity": int.tryParse(_qtyController.text) ?? 1,
-                      "storage_zone": _zoneController.text,
-                      "timestamp": DateTime.now().toIso8601String(),
-                    };
-
-                    print("🚀 TARGET BACKEND REST ROUTE: $backendUrl");
-                    print("📦 OUTBOUND HARVESTED PAYLOAD: $itemPayload");
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Captured Entry: ${_nameController.text}"),
-                        backgroundColor: AppColors.primary,
+                child: _isLoading
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: CircularProgressIndicator(color: AppColors.primary),
+                        ),
+                      )
+                    : ElevatedButton.icon(
+                        onPressed: _handleSubmit,
+                        icon: const Icon(Icons.inventory_2, color: Colors.white),
+                        label: Text(
+                          widget.strings['btn_add']!,
+                          style: GoogleFonts.quicksand(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: const BorderSide(color: AppColors.outline, width: 2),
+                          ),
+                          elevation: 0,
+                        ),
                       ),
-                    );
-                  },
-                  icon: const Icon(Icons.inventory_2, color: Colors.white),
-                  label: Text(widget.strings['btn_add']!, style: GoogleFonts.quicksand(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: const BorderSide(color: AppColors.outline, width: 2),
-                    ),
-                    elevation: 0,
-                  ),
-                ),
-              )
+              ),
             ],
           ),
-        )
+        ),
       ],
     );
+  }
+
+  List<Widget> _buildModeContent() {
+    if (_selectedMode == 0) {
+      return _buildBarcodeForm();
+    } else if (_selectedMode == 2) {
+      return _buildVisionForm();
+    } else {
+      return _buildManualForm();
+    }
+  }
+
+  // Mode 0: UPC text entry form
+  List<Widget> _buildBarcodeForm() {
+    return [
+      Text(widget.strings['form_name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+      const SizedBox(height: 4),
+      const Text('Enter the product UPC barcode number below.', style: TextStyle(color: AppColors.textVariant, fontSize: 13)),
+      const SizedBox(height: 8),
+      _buildTextField('e.g., 012345678905', controller: _upcController, keyboardType: TextInputType.number),
+    ];
+  }
+
+  // Mode 2: Vision image picker form
+  List<Widget> _buildVisionForm() {
+    return [
+      Text(widget.strings['form_name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+      const SizedBox(height: 4),
+      const Text('Select a photo of your leftover or packaged item.', style: TextStyle(color: AppColors.textVariant, fontSize: 13)),
+      const SizedBox(height: 12),
+      GestureDetector(
+        onTap: _isLoading ? null : () async {
+          final XFile? image = await _imagePicker.pickImage(source: ImageSource.gallery);
+          if (image != null) {
+            setState(() => _pickedImageName = image.name);
+          }
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceLowest,
+            border: Border.all(color: AppColors.outline, width: 2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              const Icon(Icons.add_photo_alternate_outlined, size: 40, color: AppColors.textVariant),
+              const SizedBox(height: 8),
+              Text(
+                _pickedImageName ?? 'Tap to select an image',
+                style: TextStyle(
+                  color: _pickedImageName != null ? AppColors.outline : AppColors.textVariant,
+                  fontWeight: _pickedImageName != null ? FontWeight.bold : FontWeight.normal,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    ];
+  }
+
+  // Mode 1: Manual entry form — preserved exactly from original implementation
+  List<Widget> _buildManualForm() {
+    return [
+      Text(widget.strings['form_name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+      const SizedBox(height: 8),
+      _buildTextField(widget.strings['hint_name']!, controller: _nameController),
+      const SizedBox(height: 16),
+      Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.strings['form_qty']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                _buildTextField('1', textAlign: TextAlign.center, controller: _qtyController),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.strings['form_zone']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                _buildTextField(widget.strings['hint_zone']!, controller: _zoneController),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ];
   }
 
   Widget _buildToggleButton(int index, String label, IconData icon) {
@@ -613,10 +871,16 @@ class _IntakePortalViewState extends State<IntakePortalView> {
     );
   }
 
-  Widget _buildTextField(String hint, {TextAlign textAlign = TextAlign.start, TextEditingController? controller}) {
+  Widget _buildTextField(
+    String hint, {
+    TextAlign textAlign = TextAlign.start,
+    TextEditingController? controller,
+    TextInputType? keyboardType,
+  }) {
     return TextField(
       controller: controller,
       textAlign: textAlign,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: AppColors.textVariant),
@@ -689,10 +953,10 @@ class PenguinTipsView extends StatelessWidget {
               Text(
                 strings['tips_body_2']!,
                 style: const TextStyle(color: Colors.white),
-              )
+              ),
             ],
           ),
-        )
+        ),
       ],
     );
   }
