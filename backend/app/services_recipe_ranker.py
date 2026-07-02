@@ -40,7 +40,7 @@ _client: genai.Client = genai.Client()
 
 _RANKING_GENERATION_CONFIG = types.GenerateContentConfig(
     temperature=0.2,
-    max_output_tokens=1024,
+    max_output_tokens=4096,
     response_mime_type="application/json",
 )
 
@@ -74,7 +74,13 @@ _GEMINI_RANKING_PROMPT_TEMPLATE = (
     "rank highest.\n"
     "2. Shorter ready_in_minutes breaks ties.\n"
     "3. Set gemini_safety_approved=false for any recipe requiring raw or "
-    "undercooked seafood, eggs, or poultry."
+    "undercooked seafood, eggs, or poultry.\n\n"
+    "CRITICAL OUTPUT RULES — you MUST follow these exactly:\n"
+    "- Return your response strictly as a compact, minified JSON array of objects.\n"
+    "- Do NOT wrap your response in markdown code fences (no ```json, no ```).\n"
+    "- Do NOT include any preamble, explanation, or trailing text outside the array.\n"
+    "- The entire response must be valid JSON that can be parsed by json.loads() "
+    "with no pre-processing."
 )
 
 
