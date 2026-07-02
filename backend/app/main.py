@@ -37,6 +37,7 @@ from app.database import engine  # noqa: E402
 from app import models  # noqa: E402
 from app.routers_inventory import router as inventory_router  # noqa: E402
 from app.routers_vision_ingestion import router as vision_router  # noqa: E402
+from app.routers_recipes import router as recipes_router  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -67,9 +68,10 @@ app = FastAPI(
     description=(
         "REST API platform handling intelligent freezer inventory tracking "
         "via barcode ingestion (Feature 1.1), Gemini Vision leftover "
-        "ingestion (Feature 1.2), and inventory fetch (Feature 1.0)."
+        "ingestion (Feature 1.2), inventory fetch (Feature 1.0), and "
+        "expiration-driven recipe suggestions (Feature 1.3)."
     ),
-    version="1.2.1",
+    version="1.3.0",
 )
 
 # ---------------------------------------------------------------------------
@@ -95,6 +97,7 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 app.include_router(inventory_router, prefix="/api/v1")
 app.include_router(vision_router, prefix="/api/v1")
+app.include_router(recipes_router, prefix="/api/v1")
 
 
 @app.get("/", tags=["Health"])
@@ -102,10 +105,11 @@ def health_check():
     return {
         "status": "online",
         "system": "Freezer Penguin Backend Platform",
-        "version": "1.2.1",
+        "version": "1.3.0",
         "features_active": [
             "1.0 Inventory Fetch",
             "1.1 Barcode Ingestion",
             "1.2 Gemini Vision Ingestion",
+            "1.3 Recipe Suggestions Engine",
         ],
     }

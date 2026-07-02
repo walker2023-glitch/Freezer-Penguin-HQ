@@ -1,4 +1,7 @@
-from sqlalchemy import BigInteger, Column, Integer, Numeric, String, Date, ForeignKey, Text
+from sqlalchemy import (
+    BigInteger, Boolean, Column, Date, DateTime,
+    ForeignKey, Integer, Numeric, String, Text,
+)
 from app.database import Base
 
 
@@ -90,7 +93,7 @@ class DBInventoryItem(Base):
     item_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("Users.user_id"), nullable=False)
     quantity = Column(Integer, nullable=True, default=1)
-    expiration_date = Column(Date, nullable=False)
+    expiration_date = Column(Date, nullable=False, index=True)
     UPC = Column(
         String(15),
         ForeignKey("barcode_master.UPC"),
@@ -103,6 +106,88 @@ class DBInventoryItem(Base):
         nullable=False,
     )
     unit_id = Column(Integer, ForeignKey("Units.unit_id"), nullable=False)
+    is_consumed = Column(
+        Boolean,
+        nullable=True,   # nullable=True is non-breaking for rows pre-dating this column
+        default=False,
+        index=True,
+    )
+
+
+class DBRecipe(Base):
+    """
+    ORM mapping for the `recipes` cache table — Feature 1.3 (Recipe Engine).
+
+    Rows are inserted via a spoonacular_id-based upsert pattern so repeated
+    calls for the same ingredient set never duplicate records. gemini_rank and
+    gemini_safety_approved are updated in the same atomic commit after the
+    Gemini ranking step (FR-8, FR-10).
+    """
+    __tablename__ = "recipes"
+
+    recipe_id = Column(Integer, primary_key=True, autoincrement=True)
+    spoonacular_id = Column(Integer, nullable=False, unique=True, index=True)
+    title = Column(String(500), nullable=False)
+    image_url = Column(Text, nullable=True)
+    source_url = Column(Text, nullable=True)
+    ready_in_minutes = Column(Integer, nullable=True)
+    servings = Column(Integer, nullable=True)
+    gemini_safety_approved = Column(Boolean, nullable=False, default=False)
+    gemini_rank = Column(Integer, nullable=True, index=True)
+    cached_at = Column(DateTime, nullable=False)
+
+
+class DBRecipeIngredient(Base):
+    """
+    ORM mapping for the `recipe_ingredients` table — Feature 1.3.
+
+    One row per ingredient per recipe. item_id is nullable (SET NULL on delete)
+    so the match record survives even if the linked inventory item is consumed.
+    is_matched_to_inventory=True only when the ingredient name fuzzy-matches a
+    live barcode_master.product_name for this user.
+    """
+    __tablename__ = "recipe_ingredients"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    recipe_id = Column(
+        Integer,
+        ForeignKey("recipes.recipe_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    item_id = Column(
+        Integer,
+        ForeignKey("inventory_items.item_id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    ingredient_name = Column(String(255), nullable=False)
+    spoonacular_ingredient_id = Column(Integer, nullable=True)
+    is_matched_to_inventory = Column(Boolean, nullable=False, default=False)
+
+
+class DBRecipeHasIngredient(Base):
+    """
+    ORM shell for the `recipe_ingredients_has_recipes` legacy join table.
+
+    Declared so SQLAlchemy's MetaData registry resolves any FK references
+    to this table without raising NoReferencedTableError at startup. Only
+    FK columns and an auto-increment surrogate PK are mapped here — the exact
+    composite-key DDL is deferred pending SHOW CREATE TABLE confirmation.
+    """
+    __tablename__ = "recipe_ingredients_has_recipes"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    recipe_ingredients_id = Column(
+        Integer,
+        ForeignKey("recipe_ingredients.id", ondelete="CASCADE"),
+        nullable=True,
+    )
+    recipes_recipe_id = Column(
+        Integer,
+        ForeignKey("recipes.recipe_id", ondelete="CASCADE"),
+        nullable=True,
+    )
 
 
 class DBAIAuditLog(Base):
