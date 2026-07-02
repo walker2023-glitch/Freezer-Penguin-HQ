@@ -205,4 +205,4 @@ def test_low_confidence_threshold_matches_spec():
 def test_gemini_model_name_is_flash():
     """Regression guard: ensures the model string hasn't drifted from gemini-1.5-flash."""
     from app.services_gemini_vision import _GEMINI_MODEL_NAME
-    assert _GEMINI_MODEL_NAME == "gemini-1.5-flash"
+    assert _GEMINI_MODEL_NAME == "gemini-2.5-flash"
