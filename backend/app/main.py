@@ -18,13 +18,25 @@ Gemini API key:
 import logging
 import os
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 
-from app.database import engine
-from app import models
-from app.routers_inventory import router as inventory_router
-from app.routers_vision_ingestion import router as vision_router
+# ---------------------------------------------------------------------------
+# Load .env FIRST — before any app module import that reads env vars.
+#
+# Explicit absolute path resolved from __file__ (backend/app/.env) guarantees
+# the correct file is loaded regardless of which working directory Uvicorn is
+# launched from (e.g. backend/, project root, etc.).
+# load_dotenv() is idempotent: re-calling it never clears already-set vars.
+# ---------------------------------------------------------------------------
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+
+from fastapi import FastAPI  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+
+from app.database import engine  # noqa: E402
+from app import models  # noqa: E402
+from app.routers_inventory import router as inventory_router  # noqa: E402
+from app.routers_vision_ingestion import router as vision_router  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

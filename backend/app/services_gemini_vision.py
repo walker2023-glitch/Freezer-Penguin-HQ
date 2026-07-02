@@ -32,6 +32,7 @@ SKILL.md Guardrails enforced:
 import asyncio
 import json
 import logging
+import traceback
 from dataclasses import dataclass
 
 from google import genai
@@ -47,7 +48,7 @@ logger = logging.getLogger(__name__)
 # Gemini model configuration constants
 # ---------------------------------------------------------------------------
 
-_GEMINI_MODEL_NAME = "gemini-1.5-flash"
+_GEMINI_MODEL_NAME = "gemini-2.5-flash"
 _GEMINI_TIMEOUT_SECONDS = 15.0
 _LOW_CONFIDENCE_THRESHOLD = 0.40
 
@@ -176,16 +177,19 @@ async def analyze_leftover_image(
             detail="Gemini Vision API timed out. Please retry.",
         )
     except Exception as exc:
-        # Catches google.genai errors (APIError, PermissionDeniedError, etc.)
-        # and any other SDK-level failure (auth errors, quota exceeded, network errors).
+        # DIAGNOSTIC MODE: log full traceback + raw exception string so the
+        # exact SDK error is visible in Uvicorn stdout and in the HTTP response
+        # body. Remove the detail= f-string and revert to the generic message
+        # once the root cause has been identified.
         logger.error(
-            "Gemini Vision API error — %s: %s",
+            "Gemini Vision API error — %s: %s\n--- FULL TRACEBACK ---\n%s",
             type(exc).__name__,
-            str(exc)[:300],
+            str(exc),
+            traceback.format_exc(),
         )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Gemini Vision API unavailable. Please retry.",
+            detail=f"Gemini Vision API Error [{type(exc).__name__}]: {str(exc)}",
         )
 
     raw_text: str = response.text

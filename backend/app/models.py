@@ -36,6 +36,43 @@ class DBBarcodeMaster(Base):
     )
 
 
+class DBUser(Base):
+    """
+    ORM shell for the `Users` reference table.
+
+    Declared so SQLAlchemy's relationship mapper can resolve the FK defined on
+    inventory_items.user_id → Users.user_id. Only the PK column is mapped here;
+    application code never queries this table directly through the ORM.
+    """
+    __tablename__ = "Users"
+
+    user_id = Column(Integer, primary_key=True, autoincrement=True)
+
+
+class DBStorageLocation(Base):
+    """
+    ORM shell for the `storage_locations` reference table.
+
+    Declared so SQLAlchemy's relationship mapper can resolve the FK defined on
+    inventory_items.location_id → storage_locations.location_id.
+    """
+    __tablename__ = "storage_locations"
+
+    location_id = Column(Integer, primary_key=True, autoincrement=True)
+
+
+class DBUnit(Base):
+    """
+    ORM shell for the `Units` reference table.
+
+    Declared so SQLAlchemy's relationship mapper can resolve the FK defined on
+    inventory_items.unit_id → Units.unit_id.
+    """
+    __tablename__ = "Units"
+
+    unit_id = Column(Integer, primary_key=True, autoincrement=True)
+
+
 class DBInventoryItem(Base):
     """
     ORM mapping for the `inventory_items` transaction ledger.
