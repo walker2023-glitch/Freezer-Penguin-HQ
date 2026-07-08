@@ -41,15 +41,25 @@ class DBBarcodeMaster(Base):
 
 class DBUser(Base):
     """
-    ORM shell for the `Users` reference table.
+    Full ORM mapping for the `Users` table.
 
-    Declared so SQLAlchemy's relationship mapper can resolve the FK defined on
-    inventory_items.user_id → Users.user_id. Only the PK column is mapped here;
-    application code never queries this table directly through the ORM.
+    GR-2: user_id is the sole auto-increment primary key.
+    All other columns are nullable per the live DDL to support
+    partial inserts (e.g. OAuth users with no password hash).
+    Feature 2.0 authentication reads/writes this model directly.
     """
     __tablename__ = "Users"
 
-    user_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, primary_key=True, autoincrement=True)  # GR-2: sole PK
+    email = Column(String(255), nullable=False, unique=True, index=True)
+    hashed_password = Column(String(255), nullable=True)
+    tier_status = Column(String(10), nullable=True)   # 'Basic' | 'Premium'
+    created_at = Column(DateTime, nullable=True)
+    total_spent = Column(Numeric(10, 2), nullable=True)
+    lifetime_item_count = Column(Integer, nullable=True)
+    current_item_count = Column(Integer, nullable=True)
+    total_food_wasted = Column(Integer, nullable=True)
+    total_food_wasted_cost = Column(Numeric(10, 2), nullable=True)
 
 
 class DBStorageLocation(Base):

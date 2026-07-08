@@ -1,0 +1,222 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Freezer Penguin",
+  "@appTitle": { "description": "Application name shown in AppBar and window title." },
+
+  "welcomeMsg": "Stay frosty!",
+  "@welcomeMsg": { "description": "Dashboard greeting headline." },
+
+  "subWelcome": "Here is the current state of your icebox.",
+  "@subWelcome": { "description": "Dashboard greeting subtitle." },
+
+  "tabHome": "Home",
+  "@tabHome": { "description": "Bottom navigation tab label." },
+
+  "tabInventory": "The Ice Floe",
+  "@tabInventory": { "description": "Bottom navigation tab label." },
+
+  "tabIntake": "Intake Portal",
+  "@tabIntake": { "description": "Bottom navigation tab label." },
+
+  "tabTips": "Penguin Tips",
+  "@tabTips": { "description": "Bottom navigation tab label." },
+
+  "capacityTitle": "Icebox Capacity",
+  "@capacityTitle": { "description": "Dashboard capacity card title." },
+
+  "statusOptimal": "Optimal",
+  "@statusOptimal": { "description": "Capacity status badge — below threshold." },
+
+  "statusFull": "Full",
+  "@statusFull": { "description": "Capacity fill-bar label." },
+
+  "lblExpiring": "EXPIRING",
+  "@lblExpiring": { "description": "Dashboard expiring-items counter label." },
+
+  "lblTotal": "TOTAL",
+  "@lblTotal": { "description": "Dashboard total-items counter label." },
+
+  "invSub": "Your frozen assets.",
+  "@invSub": { "description": "Inventory screen subtitle." },
+
+  "btnFilter": "Filter",
+  "@btnFilter": { "description": "Inventory filter button." },
+
+  "intakeSub": "Log new provisions for the frozen expanse.",
+  "@intakeSub": { "description": "Intake portal subtitle." },
+
+  "toggleBarcode": "Barcode",
+  "@toggleBarcode": { "description": "Intake mode toggle label." },
+
+  "toggleManual": "Manual",
+  "@toggleManual": { "description": "Intake mode toggle label." },
+
+  "toggleVision": "Vision",
+  "@toggleVision": { "description": "Intake mode toggle label." },
+
+  "formName": "Item Name",
+  "@formName": { "description": "Manual intake form field label." },
+
+  "hintName": "e.g., Krill Patties, Frozen Peas",
+  "@hintName": { "description": "Manual intake item name hint text." },
+
+  "formQty": "Quantity",
+  "@formQty": { "description": "Manual intake form field label." },
+
+  "formZone": "Storage Zone",
+  "@formZone": { "description": "Manual intake form field label." },
+
+  "hintZone": "Deep Freeze (Bottom)",
+  "@hintZone": { "description": "Manual intake storage zone hint text." },
+
+  "btnAdd": "Add to Freezer",
+  "@btnAdd": { "description": "Intake submit button label." },
+
+  "tipsSpotlight": "WEEKLY SPOTLIGHT",
+  "@tipsSpotlight": { "description": "Tips screen spotlight badge." },
+
+  "tipsTitle1": "Master the Deep Freeze",
+  "@tipsTitle1": { "description": "Tips card 1 headline." },
+
+  "tipsBody1": "Discover eco-friendly ways to preserve your fresh produce and reduce food waste with our ultimate penguin-approved kitchen strategies!",
+  "@tipsBody1": { "description": "Tips card 1 body text." },
+
+  "tipsTitle2": "Blanching 101",
+  "@tipsTitle2": { "description": "Tips card 2 headline." },
+
+  "tipsBody2": "A quick boil followed by an ice bath stops enzymes, locking in bright colors and flavor.",
+  "@tipsBody2": { "description": "Tips card 2 body text." },
+
+  "settings": "Settings",
+  "@settings": { "description": "Settings bottom sheet title." },
+
+  "settingsThemeHeader": "THEME",
+  "@settingsThemeHeader": { "description": "Settings sheet theme section header." },
+
+  "settingsLanguageHeader": "LANGUAGE",
+  "@settingsLanguageHeader": { "description": "Settings sheet language section header." },
+
+  "themeNameGlacier": "Frozen Glacier",
+  "@themeNameGlacier": { "description": "Theme selector option label." },
+
+  "themeNameKitchen": "Crisp Kitchen",
+  "@themeNameKitchen": { "description": "Theme selector option label." },
+
+  "themeNameOcean": "Deep Ocean",
+  "@themeNameOcean": { "description": "Theme selector option label." },
+
+  "loginTitle": "Sign In",
+  "@loginTitle": { "description": "Login screen heading and button label." },
+
+  "registerTitle": "Create Account",
+  "@registerTitle": { "description": "Register screen heading and button label." },
+
+  "loginEmailLabel": "Email Address",
+  "@loginEmailLabel": { "description": "Email text field label on the login / register form." },
+
+  "loginPasswordLabel": "Password",
+  "@loginPasswordLabel": { "description": "Password text field label on the login / register form." },
+
+  "switchToRegister": "Don't have an account? Register",
+  "@switchToRegister": { "description": "Toggle link shown on the login form to navigate to register." },
+
+  "switchToLogin": "Already have an account? Sign In",
+  "@switchToLogin": { "description": "Toggle link shown on the register form to navigate to login." },
+
+  "logoutButton": "Sign Out",
+  "@logoutButton": { "description": "Sign-out button label in the settings sheet." },
+
+  "loginErrorEmptyFields": "Email and password are required.",
+  "@loginErrorEmptyFields": { "description": "Validation error shown when either field is blank." },
+
+  "loginErrorInvalid": "Invalid email or password.",
+  "@loginErrorInvalid": { "description": "Error shown when the server rejects credentials." },
+
+  "registerSuccess": "Account created! Please sign in.",
+  "@registerSuccess": { "description": "Snackbar shown after successful registration." },
+
+  "loadingTagline": "Stay frosty, stay smart.",
+  "@loadingTagline": { "description": "Tagline shown beneath the app title on the loading screen." },
+
+  "loadingMessage": "Organizing your icebox\u2026",
+  "@loadingMessage": { "description": "Fallback status text. Superseded by the rotating quote cycle." },
+
+  "loadingQuote1": "No fragment forgotten, no food wasted.",
+  "@loadingQuote1": { "description": "Loading screen rotating quote 1 of 5." },
+
+  "loadingQuote2": "Master your freezer.",
+  "@loadingQuote2": { "description": "Loading screen rotating quote 2 of 5." },
+
+  "loadingQuote3": "Stop guessing. Start chilling.",
+  "@loadingQuote3": { "description": "Loading screen rotating quote 3 of 5." },
+
+  "loadingQuote4": "A friendly face for an organized space.",
+  "@loadingQuote4": { "description": "Loading screen rotating quote 4 of 5." },
+
+  "loadingQuote5": "Cold storage, clear vision.",
+  "@loadingQuote5": { "description": "Loading screen rotating quote 5 of 5." },
+
+  "tabColdStorage": "Cold Storage",
+  "@tabColdStorage": { "description": "Inventory / Cold Storage tab label — same across all themes." },
+
+  "tabHomeStandard": "Home",
+  "@tabHomeStandard": { "description": "Home tab label in Standard (Crisp Kitchen / Deep Ocean) themes." },
+
+  "tabHomeArctic": "Basecamp",
+  "@tabHomeArctic": { "description": "Home tab label in the Frozen Glacier / Arctic theme." },
+
+  "tabConsumeStandard": "Feast",
+  "@tabConsumeStandard": { "description": "Consume tab label in Standard themes." },
+
+  "tabConsumeArctic": "Rations",
+  "@tabConsumeArctic": { "description": "Consume tab label in Arctic theme." },
+
+  "tabCommunityStandard": "Cool Tips",
+  "@tabCommunityStandard": { "description": "Community/Tips tab label in Standard themes." },
+
+  "tabCommunityArctic": "The Huddle",
+  "@tabCommunityArctic": { "description": "Community/Tips tab label in Arctic theme." },
+
+  "consumePageSub": "Fuel your body, track your intake.",
+  "@consumePageSub": { "description": "Subtitle shown beneath the Consume / Feast / Rations page heading." },
+
+  "consumeSectionSubtract": "Log What You Ate",
+  "@consumeSectionSubtract": { "description": "Section header for the inventory subtraction card." },
+
+  "consumeSubtractHint": "Select an item from your inventory to mark as consumed.",
+  "@consumeSubtractHint": { "description": "Helper text inside the inventory subtraction card." },
+
+  "consumeMarkEaten": "Mark as Eaten",
+  "@consumeMarkEaten": { "description": "Action button label in the inventory subtraction section." },
+
+  "consumeSectionCalorie": "Calorie & Macro Tracker",
+  "@consumeSectionCalorie": { "description": "Section header for the calorie and macro tracking card." },
+
+  "consumeCalorieHint": "Track your daily nutritional intake.",
+  "@consumeCalorieHint": { "description": "Helper text inside the calorie tracker card." },
+
+  "consumeFieldCalories": "Calories",
+  "@consumeFieldCalories": { "description": "Calories text field label." },
+
+  "consumeFieldProtein": "Protein (g)",
+  "@consumeFieldProtein": { "description": "Protein text field label." },
+
+  "consumeFieldCarbs": "Carbs (g)",
+  "@consumeFieldCarbs": { "description": "Carbohydrates text field label." },
+
+  "consumeFieldFat": "Fat (g)",
+  "@consumeFieldFat": { "description": "Fat text field label." },
+
+  "consumeLogMacros": "Log Macros",
+  "@consumeLogMacros": { "description": "Action button that submits the calorie / macro entry." },
+
+  "consumeSectionPhoto": "Snap Your Meal",
+  "@consumeSectionPhoto": { "description": "Section header for the meal photo upload card." },
+
+  "consumePhotoHint": "Upload a photo to visually log what you ate.",
+  "@consumePhotoHint": { "description": "Helper text inside the meal photo card." },
+
+  "consumePhotoBtn": "Upload Photo",
+  "@consumePhotoBtn": { "description": "Button that opens the image picker for meal photo upload." }
+}

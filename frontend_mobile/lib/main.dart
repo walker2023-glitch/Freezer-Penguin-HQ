@@ -1,143 +1,96 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
-// Network target — HTTP only to avoid local self-signed TLS certificate blocks
-const String backendUrl = "http://127.0.0.1:8000/api/v1";
+import 'config.dart';                      // backendUrl + AppColors
+import 'screens/consume_screen.dart';          // Phase 5 — Consume / Feast / Rations tab
+import 'screens/loading_screen.dart';          // Phase 4 — animated splash/loading screen
+import 'screens/login_screen.dart';            // Feature 2.0 — LoginScreen
+import 'screens/pantry_insights_screen.dart';  // Phase 6 — SQL analytics dashboard
+import 'state/app_settings.dart';        // Phase 5 — AppTheme/AppLocale/AppSettings
+import 'state/auth_state.dart';          // Feature 2.0 — AuthState ChangeNotifier
+import 'widgets/bento_card.dart';        // Phase 5 — extracted shared card widget
 
-class AppStrings {
-  static const Map<String, String> en = {
-    'app_title': 'Freezer Penguin',
-    'welcome_msg': 'Stay frosty!',
-    'sub_welcome': 'Here is the current state of your icebox.',
-    'tab_home': 'Home',
-    'tab_inventory': 'The Ice Floe',
-    'tab_intake': 'Intake Portal',
-    'tab_tips': 'Penguin Tips',
-    'capacity_title': 'Icebox Capacity',
-    'status_optimal': 'Optimal',
-    'status_full': 'Full',
-    'lbl_expiring': 'EXPIRING',
-    'lbl_total': 'TOTAL',
-    'inv_sub': 'Your frozen assets.',
-    'btn_filter': 'Filter',
-    'intake_sub': 'Log new provisions for the frozen expanse.',
-    'toggle_barcode': 'Barcode',
-    'toggle_manual': 'Manual',
-    'toggle_vision': 'Vision',
-    'form_name': 'Item Name',
-    'hint_name': 'e.g., Krill Patties, Frozen Peas',
-    'form_qty': 'Quantity',
-    'form_zone': 'Storage Zone',
-    'hint_zone': 'Deep Freeze (Bottom)',
-    'btn_add': 'Add to Freezer',
-    'tips_spotlight': 'WEEKLY SPOTLIGHT',
-    'tips_title_1': 'Master the Deep Freeze',
-    'tips_body_1': 'Discover eco-friendly ways to preserve your fresh produce and reduce food waste with our ultimate penguin-approved kitchen strategies!',
-    'tips_title_2': 'Blanching 101',
-    'tips_body_2': 'A quick boil followed by an ice bath stops enzymes, locking in bright colors and flavor.',
-  };
+// AppTheme / AppLocale / AppLocaleExtension / AppSettings
+// ↳ moved to lib/state/app_settings.dart (Phase 5)
 
-  static const Map<String, String> zhCantonese = {
-    'app_title': '雪櫃企鵝',
-    'welcome_msg': '保持冰爽！',
-    'sub_welcome': '依家checkaka你個雪櫃嘅狀態：',
-    'tab_home': '首頁',
-    'tab_inventory': '冰層庫存',
-    'tab_intake': '入庫門戶',
-    'tab_tips': '企鵝貼士',
-    'capacity_title': '雪櫃容量',
-    'status_optimal': '最佳狀態',
-    'status_full': '已滿',
-    'lbl_expiring': '即將過期',
-    'lbl_total': '總數',
-    'inv_sub': '你嘅冷凍資產。',
-    'btn_filter': '篩選',
-    'intake_sub': '記錄放入雪櫃嘅新物資。',
-    'toggle_barcode': '條碼掃描',
-    'toggle_manual': '手動輸入',
-    'toggle_vision': '影像識別',
-    'form_name': '項目名稱',
-    'hint_name': '例如：磷蝦肉餅、急凍青豆',
-    'form_qty': '數量',
-    'form_zone': '儲存區域',
-    'hint_zone': '深層冷凍區 (底部)',
-    'btn_add': '放入雪櫃',
-    'tips_spotlight': '每週焦點',
-    'tips_title_1': '精通深層冷凍',
-    'tips_body_1': '探索環保嘅方法去保存你哋嘅新鮮食材，利用我哋企鵝認證嘅廚房策略減少嘢食浪費！',
-    'tips_title_2': '殺青技術 101',
-    'tips_body_2': '快速白灼然後放入冰水可以停止酵素作用，鎖住鮮艷嘅顏色同原味。',
-  };
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// APP ENTRY POINT
+// ─────────────────────────────────────────────────────────────────────────────
 
 void main() {
   runApp(const FreezerPenguinApp());
 }
 
-class FreezerPenguinApp extends StatefulWidget {
+class FreezerPenguinApp extends StatelessWidget {
   const FreezerPenguinApp({super.key});
 
   @override
-  State<FreezerPenguinApp> createState() => _FreezerPenguinAppState();
-}
-
-class _FreezerPenguinAppState extends State<FreezerPenguinApp> {
-  bool _isAntarcticMode = true;
-
-  @override
   Widget build(BuildContext context) {
-    final Color currentBackground = _isAntarcticMode ? AppColors.antarcticBackground : AppColors.crispKitchenBackground;
-    final Color currentSurface = _isAntarcticMode ? AppColors.antarcticSurface : AppColors.crispKitchenSurface;
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppSettings()),
+        ChangeNotifierProvider(create: (_) => AuthState()),
+      ],
+      child: Consumer<AppSettings>(
+        builder: (_, settings, __) => MaterialApp(
+          title: 'Freezer Penguin',
+          debugShowCheckedModeBanner: false,
+          theme: settings.buildTheme(),
 
-    return MaterialApp(
-      title: 'Freezer Penguin',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        scaffoldBackgroundColor: currentBackground,
-        textTheme: GoogleFonts.quicksandTextTheme(
-          Theme.of(context).textTheme.apply(
-                bodyColor: AppColors.outline,
-                displayColor: AppColors.outline,
-              ),
+          // ── Flutter l10n wiring ──────────────────────────────────────────
+          locale: settings.flutterLocale,
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('zh'),
+            Locale('zh', 'HK'),
+            Locale('es'),
+          ],
+
+          // ── Three-state routing ──────────────────────────────────────────
+          // 1. isInitializing → LoadingScreen  (splash, shown once at launch)
+          // 2. isAuthenticated → MainNavigationScreen
+          // 3. default          → LoginScreen
+          //
+          // AnimatedSwitcher provides a 450 ms crossfade between states.
+          // ValueKey on each child ensures the switcher detects the swap.
+          home: Consumer<AuthState>(
+            builder: (_, auth, __) => AnimatedSwitcher(
+              duration: const Duration(milliseconds: 450),
+              switchInCurve: Curves.easeIn,
+              switchOutCurve: Curves.easeOut,
+              child: auth.isInitializing
+                  ? const LoadingScreen(key: ValueKey('loading'))
+                  : auth.isAuthenticated
+                      ? const MainNavigationScreen(key: ValueKey('main'))
+                      : const LoginScreen(key: ValueKey('login')),
+            ),
+          ),
         ),
-        colorScheme: ColorScheme.light(
-          primary: AppColors.primary,
-          secondary: AppColors.orange,
-          surface: currentSurface,
-        ),
-      ),
-      home: MainNavigationScreen(
-        isAntarcticMode: _isAntarcticMode,
-        onThemeToggle: () => setState(() => _isAntarcticMode = !_isAntarcticMode),
       ),
     );
   }
 }
 
-class AppColors {
-  static const Color antarcticBackground = Color(0xFFD1E6F7);
-  static const Color antarcticSurface = Color(0xFFA9D2F0);
-  static const Color crispKitchenBackground = Color(0xFFF4F9FD);
-  static const Color crispKitchenSurface = Color(0xFFE1EFFB);
-  static const Color surfaceLowest = Color(0xFFFFFFFF);
-  static const Color outline = Color(0xFF05162E);
-  static const Color primary = Color(0xFF00A3FF);
-  static const Color orange = Color(0xFFF37321);
-  static const Color textVariant = Color(0xFF2D5B88);
-}
+// AppColors — moved to lib/config.dart (shared with login_screen.dart)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN NAVIGATION
+// ─────────────────────────────────────────────────────────────────────────────
 
 class MainNavigationScreen extends StatefulWidget {
-  final bool isAntarcticMode;
-  final VoidCallback onThemeToggle;
-
-  const MainNavigationScreen({
-    super.key,
-    required this.isAntarcticMode,
-    required this.onThemeToggle,
-  });
+  const MainNavigationScreen({super.key});
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
@@ -145,17 +98,39 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
-  bool _isCantonese = false;
+
+  void _openSettings() {
+    // Capture both providers before the builder runs in the modal route context
+    // (which is outside the main widget tree and cannot access them directly).
+    final appSettings = context.read<AppSettings>();
+    final authState = context.read<AuthState>();
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: appSettings),
+          ChangeNotifierProvider.value(value: authState),
+        ],
+        child: const _SettingsSheet(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final strings = _isCantonese ? AppStrings.zhCantonese : AppStrings.en;
+    final l10n = AppLocalizations.of(context)!;
+    // watch so nav re-renders immediately when theme changes
+    final isArctic = context.watch<AppSettings>().isArctic;
 
-    final List<Widget> views = [
-      HomeDashboardView(strings: strings),
-      IceFloeView(strings: strings),
-      IntakePortalView(strings: strings),
-      PenguinTipsView(strings: strings),
+    // IndexedStack preserves widget state on tab switch (e.g. IceFloeView
+    // retains its loaded inventory list; ConsumeScreen retains form state).
+    const views = [
+      HomeDashboardView(),
+      IceFloeView(),
+      ConsumeScreen(),       // Phase 5 — replaces IntakePortalView in nav
+      PenguinTipsView(),
     ];
 
     return Scaffold(
@@ -168,7 +143,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             const Icon(Icons.ac_unit, color: AppColors.primary, size: 28),
             const SizedBox(width: 8),
             Text(
-              strings['app_title']!,
+              l10n.appTitle,
               style: GoogleFonts.quicksand(
                 color: AppColors.outline,
                 fontWeight: FontWeight.w700,
@@ -179,31 +154,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ],
         ),
         actions: [
-          TextButton(
-            child: Text(
-              _isCantonese ? "EN" : "廣東話",
-              style: GoogleFonts.quicksand(
-                color: AppColors.outline,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            onPressed: () {
-              setState(() {
-                _isCantonese = !_isCantonese;
-              });
-            },
-          ),
           IconButton(
-            icon: Icon(
-              widget.isAntarcticMode ? Icons.wb_sunny_outlined : Icons.dark_mode_outlined,
-              color: AppColors.outline,
-            ),
-            onPressed: widget.onThemeToggle,
+            icon: const Icon(Icons.settings_outlined, color: AppColors.outline),
+            tooltip: l10n.settings,
+            onPressed: _openSettings,
           ),
         ],
       ),
-      body: views[_currentIndex],
+      // IndexedStack keeps all tab widgets alive so state is preserved
+      body: IndexedStack(
+        index: _currentIndex,
+        children: views,
+      ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           border: Border(top: BorderSide(color: AppColors.outline, width: 2)),
@@ -219,10 +181,30 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           selectedLabelStyle: GoogleFonts.quicksand(fontWeight: FontWeight.bold),
           unselectedLabelStyle: GoogleFonts.quicksand(fontWeight: FontWeight.w600),
           items: [
-            BottomNavigationBarItem(icon: const Icon(Icons.home_outlined), activeIcon: const Icon(Icons.home), label: strings['tab_home']),
-            BottomNavigationBarItem(icon: const Icon(Icons.ac_unit_outlined), activeIcon: const Icon(Icons.ac_unit), label: strings['tab_inventory']),
-            BottomNavigationBarItem(icon: const Icon(Icons.add_box_outlined), activeIcon: const Icon(Icons.add_box), label: strings['tab_intake']),
-            BottomNavigationBarItem(icon: const Icon(Icons.lightbulb_outline), activeIcon: const Icon(Icons.lightbulb), label: strings['tab_tips']),
+            // Tab 0 — Home / Basecamp
+            BottomNavigationBarItem(
+              icon: Icon(isArctic ? Icons.explore_outlined : Icons.home_outlined),
+              activeIcon: Icon(isArctic ? Icons.explore : Icons.home),
+              label: isArctic ? l10n.tabHomeArctic : l10n.tabHomeStandard,
+            ),
+            // Tab 1 — Cold Storage (label same in both themes)
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.ac_unit_outlined),
+              activeIcon: const Icon(Icons.ac_unit),
+              label: l10n.tabColdStorage,
+            ),
+            // Tab 2 — Feast / Rations
+            BottomNavigationBarItem(
+              icon: Icon(isArctic ? Icons.food_bank_outlined : Icons.restaurant_outlined),
+              activeIcon: Icon(isArctic ? Icons.food_bank : Icons.restaurant),
+              label: isArctic ? l10n.tabConsumeArctic : l10n.tabConsumeStandard,
+            ),
+            // Tab 3 — Cool Tips / The Huddle
+            BottomNavigationBarItem(
+              icon: Icon(isArctic ? Icons.forum_outlined : Icons.lightbulb_outline),
+              activeIcon: Icon(isArctic ? Icons.forum : Icons.lightbulb),
+              label: isArctic ? l10n.tabCommunityArctic : l10n.tabCommunityStandard,
+            ),
           ],
         ),
       ),
@@ -230,44 +212,197 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 }
 
-class BentoCard extends StatelessWidget {
-  final Widget child;
-  final Color? backgroundColor;
-  final EdgeInsetsGeometry padding;
+// ─────────────────────────────────────────────────────────────────────────────
+// SETTINGS BOTTOM SHEET
+// ─────────────────────────────────────────────────────────────────────────────
 
-  const BentoCard({
-    super.key,
-    required this.child,
-    this.backgroundColor,
-    this.padding = const EdgeInsets.all(20),
-  });
+class _SettingsSheet extends StatelessWidget {
+  const _SettingsSheet();
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<AppSettings>();
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
-      padding: padding,
-      decoration: BoxDecoration(
-        color: backgroundColor ?? Theme.of(context).colorScheme.surface,
-        border: Border.all(color: AppColors.outline, width: 2),
-        borderRadius: BorderRadius.circular(20),
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 32,
       ),
-      child: child,
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        border: const Border(top: BorderSide(color: AppColors.outline, width: 2)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.textVariant.withAlpha(100),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            l10n.settings,
+            style: GoogleFonts.quicksand(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.outline),
+          ),
+          const SizedBox(height: 24),
+
+          // ── Theme ──────────────────────────────────────────────────────────
+          Text(
+            l10n.settingsThemeHeader,
+            style: GoogleFonts.quicksand(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textVariant, letterSpacing: 1.2),
+          ),
+          const SizedBox(height: 10),
+          _ThemeOption(label: l10n.themeNameGlacier, icon: Icons.ac_unit,          value: AppTheme.frozenGlacier, settings: settings),
+          const SizedBox(height: 8),
+          _ThemeOption(label: l10n.themeNameKitchen, icon: Icons.wb_sunny_outlined, value: AppTheme.crispKitchen,  settings: settings),
+          const SizedBox(height: 8),
+          _ThemeOption(label: l10n.themeNameOcean,   icon: Icons.dark_mode_outlined, value: AppTheme.deepOcean,   settings: settings),
+          const SizedBox(height: 24),
+
+          // ── Language ───────────────────────────────────────────────────────
+          Text(
+            l10n.settingsLanguageHeader,
+            style: GoogleFonts.quicksand(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textVariant, letterSpacing: 1.2),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              border: Border.all(color: AppColors.outline, width: 2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<AppLocale>(
+                value: settings.locale,
+                isExpanded: true,
+                style: GoogleFonts.quicksand(color: AppColors.outline, fontWeight: FontWeight.w600, fontSize: 15),
+                // Language names are intentionally in their native script (not localized)
+                items: const [
+                  DropdownMenuItem(value: AppLocale.en,  child: Text('English')),
+                  DropdownMenuItem(value: AppLocale.yue, child: Text('廣東話')),
+                  DropdownMenuItem(value: AppLocale.es,  child: Text('Español')),
+                ],
+                onChanged: (v) {
+                  if (v != null) context.read<AppSettings>().setLocale(v);
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // ── Account ────────────────────────────────────────────────────
+          const Divider(thickness: 1, color: AppColors.outline),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.read<AuthState>().logout();
+              },
+              icon: const Icon(Icons.logout, size: 18),
+              label: Text(l10n.logoutButton),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red.shade700,
+                side: BorderSide(color: Colors.red.shade700, width: 1.5),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                textStyle: GoogleFonts.quicksand(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
     );
   }
 }
 
-class HomeDashboardView extends StatelessWidget {
-  final Map<String, String> strings;
-  const HomeDashboardView({super.key, required this.strings});
+class _ThemeOption extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final AppTheme value;
+  final AppSettings settings;
+
+  const _ThemeOption({
+    required this.label,
+    required this.icon,
+    required this.value,
+    required this.settings,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final bool selected = settings.theme == value;
+
+    return GestureDetector(
+      onTap: () => context.read<AppSettings>().setTheme(value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary.withAlpha(30) : Theme.of(context).colorScheme.surface,
+          border: Border.all(color: selected ? AppColors.primary : AppColors.outline, width: selected ? 2 : 1.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: selected ? AppColors.primary : AppColors.outline),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: GoogleFonts.quicksand(
+                fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+                color: selected ? AppColors.primary : AppColors.outline,
+                fontSize: 15,
+              ),
+            ),
+            const Spacer(),
+            if (selected) const Icon(Icons.check_circle, size: 20, color: AppColors.primary),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// BentoCard — moved to lib/widgets/bento_card.dart (Phase 5)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCREEN VIEWS
+// ─────────────────────────────────────────────────────────────────────────────
+
+class HomeDashboardView extends StatelessWidget {
+  const HomeDashboardView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text(strings['welcome_msg']!, style: GoogleFonts.quicksand(fontSize: 28, fontWeight: FontWeight.bold)),
+        Text(l10n.welcomeMsg, style: GoogleFonts.quicksand(fontSize: 28, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        Text(strings['sub_welcome']!, style: const TextStyle(color: AppColors.textVariant, fontSize: 16)),
+        Text(l10n.subWelcome, style: const TextStyle(color: AppColors.textVariant, fontSize: 16)),
         const SizedBox(height: 24),
 
         BentoCard(
@@ -281,7 +416,7 @@ class HomeDashboardView extends StatelessWidget {
                     children: [
                       const Icon(Icons.severe_cold, color: AppColors.primary),
                       const SizedBox(width: 8),
-                      Text(strings['capacity_title']!, style: GoogleFonts.quicksand(fontSize: 20, fontWeight: FontWeight.bold)),
+                      Text(l10n.capacityTitle, style: GoogleFonts.quicksand(fontSize: 20, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   Container(
@@ -291,7 +426,7 @@ class HomeDashboardView extends StatelessWidget {
                       border: Border.all(color: AppColors.outline, width: 2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(strings['status_optimal']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: Text(l10n.statusOptimal, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -303,7 +438,7 @@ class HomeDashboardView extends StatelessWidget {
                   const SizedBox(width: 8),
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(strings['status_full']!, style: const TextStyle(color: AppColors.textVariant, fontWeight: FontWeight.w600)),
+                    child: Text(l10n.statusFull, style: const TextStyle(color: AppColors.textVariant, fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -343,7 +478,7 @@ class HomeDashboardView extends StatelessWidget {
                     const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 40),
                     const SizedBox(height: 8),
                     Text('3', style: GoogleFonts.quicksand(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white)),
-                    Text(strings['lbl_expiring']!, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                    Text(l10n.lblExpiring, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                   ],
                 ),
               ),
@@ -358,12 +493,68 @@ class HomeDashboardView extends StatelessWidget {
                     const Icon(Icons.inventory_2_outlined, color: Colors.white, size: 40),
                     const SizedBox(height: 8),
                     Text('42', style: GoogleFonts.quicksand(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white)),
-                    Text(strings['lbl_total']!, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                    Text(l10n.lblTotal, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                   ],
                 ),
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 16),
+
+        // ── Pantry Insights entry card (Phase 6 — SQL analytics dashboard) ──
+        GestureDetector(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const PantryInsightsScreen(),
+            ),
+          ),
+          child: BentoCard(
+            backgroundColor: const Color(0xFF05162E),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    border: Border.all(color: Colors.white.withAlpha(80), width: 1.5),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(Icons.insights, color: Colors.white, size: 26),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pantry Insights',
+                        style: GoogleFonts.quicksand(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const Text(
+                        'Expiry · Health · Recipes · Zones',
+                        style: TextStyle(
+                          color: Color(0xFF7BA8D4),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: AppColors.primary,
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
@@ -371,12 +562,11 @@ class HomeDashboardView extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// IceFloeView — refactored to StatefulWidget; FutureBuilder drives live data
+// IceFloeView
 // ---------------------------------------------------------------------------
 
 class IceFloeView extends StatefulWidget {
-  final Map<String, String> strings;
-  const IceFloeView({super.key, required this.strings});
+  const IceFloeView({super.key});
 
   @override
   State<IceFloeView> createState() => _IceFloeViewState();
@@ -405,6 +595,8 @@ class _IceFloeViewState extends State<IceFloeView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -414,8 +606,8 @@ class _IceFloeViewState extends State<IceFloeView> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.strings['tab_inventory']!, style: GoogleFonts.quicksand(fontSize: 28, fontWeight: FontWeight.bold)),
-                Text(widget.strings['inv_sub']!, style: const TextStyle(color: AppColors.textVariant, fontSize: 16)),
+                Text(l10n.tabColdStorage, style: GoogleFonts.quicksand(fontSize: 28, fontWeight: FontWeight.bold)),
+                Text(l10n.invSub, style: const TextStyle(color: AppColors.textVariant, fontSize: 16)),
               ],
             ),
             GestureDetector(
@@ -431,7 +623,7 @@ class _IceFloeViewState extends State<IceFloeView> {
                   children: [
                     const Icon(Icons.filter_list, color: Colors.white, size: 18),
                     const SizedBox(width: 4),
-                    Text(widget.strings['btn_filter']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Text(l10n.btnFilter, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -477,7 +669,7 @@ class _IceFloeViewState extends State<IceFloeView> {
               children: [
                 for (int i = 0; i < items.length; i++) ...[
                   if (i > 0) const SizedBox(height: 16),
-                  _buildInventoryItem(items[i] as Map<String, dynamic>),
+                  _buildInventoryItem(context, items[i] as Map<String, dynamic>),
                 ],
               ],
             );
@@ -487,7 +679,8 @@ class _IceFloeViewState extends State<IceFloeView> {
     );
   }
 
-  Widget _buildInventoryItem(Map<String, dynamic> item) {
+  Widget _buildInventoryItem(BuildContext context, Map<String, dynamic> item) {
+    final l10n = AppLocalizations.of(context)!;
     final String name = (item['product_name'] as String?) ??
         (item['upc'] != null ? 'UPC: ${item['upc']}' : 'Unknown Item');
     final int qty = (item['quantity'] as int?) ?? 1;
@@ -528,7 +721,7 @@ class _IceFloeViewState extends State<IceFloeView> {
               children: [
                 const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 14),
                 const SizedBox(width: 4),
-                Text(widget.strings['lbl_expiring']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                Text(l10n.lblExpiring, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
               ],
             ),
           ),
@@ -539,12 +732,11 @@ class _IceFloeViewState extends State<IceFloeView> {
 }
 
 // ---------------------------------------------------------------------------
-// IntakePortalView — wired to backend for Barcode (mode 0) and Vision (mode 2)
+// IntakePortalView
 // ---------------------------------------------------------------------------
 
 class IntakePortalView extends StatefulWidget {
-  final Map<String, String> strings;
-  const IntakePortalView({super.key, required this.strings});
+  const IntakePortalView({super.key});
 
   @override
   State<IntakePortalView> createState() => _IntakePortalViewState();
@@ -554,15 +746,11 @@ class _IntakePortalViewState extends State<IntakePortalView> {
   int _selectedMode = 1;
   bool _isLoading = false;
 
-  // Mode 1: Manual form controllers
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _qtyController = TextEditingController(text: '1');
+  final TextEditingController _qtyController  = TextEditingController(text: '1');
   final TextEditingController _zoneController = TextEditingController();
+  final TextEditingController _upcController  = TextEditingController();
 
-  // Mode 0: Barcode UPC input controller
-  final TextEditingController _upcController = TextEditingController();
-
-  // Mode 2: Vision — image picker state
   final ImagePicker _imagePicker = ImagePicker();
   String? _pickedImageName;
 
@@ -584,7 +772,6 @@ class _IntakePortalViewState extends State<IntakePortalView> {
     );
   }
 
-  // Mode 0 — POST /inventory/barcode/{upc}
   Future<void> _submitBarcode() async {
     final upc = _upcController.text.trim();
     if (upc.isEmpty) {
@@ -594,9 +781,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
     setState(() => _isLoading = true);
     try {
       final response = await http
-          .post(
-            Uri.parse('$backendUrl/inventory/barcode/$upc?user_id=1&location_id=1&unit_id=1'),
-          )
+          .post(Uri.parse('$backendUrl/inventory/barcode/$upc?user_id=1&location_id=1&unit_id=1'))
           .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 201) {
@@ -616,7 +801,6 @@ class _IntakePortalViewState extends State<IntakePortalView> {
     }
   }
 
-  // Mode 2 — multipart POST /inventory/scan-leftover
   Future<void> _pickAndSubmitVision() async {
     final XFile? image = await _imagePicker.pickImage(source: ImageSource.gallery);
     if (image == null) return;
@@ -653,7 +837,6 @@ class _IntakePortalViewState extends State<IntakePortalView> {
     }
   }
 
-  // Mode 1 — Manual form (no dedicated backend endpoint; captured locally)
   void _submitManual() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -665,24 +848,21 @@ class _IntakePortalViewState extends State<IntakePortalView> {
 
   Future<void> _handleSubmit() async {
     switch (_selectedMode) {
-      case 0:
-        await _submitBarcode();
-        break;
-      case 2:
-        await _pickAndSubmitVision();
-        break;
-      default:
-        _submitManual();
+      case 0: await _submitBarcode(); break;
+      case 2: await _pickAndSubmitVision(); break;
+      default: _submitManual();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text(widget.strings['tab_intake']!, style: GoogleFonts.quicksand(fontSize: 28, fontWeight: FontWeight.bold)),
-        Text(widget.strings['intake_sub']!, style: const TextStyle(color: AppColors.textVariant, fontSize: 16)),
+        Text(l10n.tabIntake, style: GoogleFonts.quicksand(fontSize: 28, fontWeight: FontWeight.bold)),
+        Text(l10n.intakeSub, style: const TextStyle(color: AppColors.textVariant, fontSize: 16)),
         const SizedBox(height: 24),
 
         Container(
@@ -694,9 +874,9 @@ class _IntakePortalViewState extends State<IntakePortalView> {
           ),
           child: Row(
             children: [
-              _buildToggleButton(0, widget.strings['toggle_barcode']!, Icons.barcode_reader),
-              _buildToggleButton(1, widget.strings['toggle_manual']!, Icons.edit_document),
-              _buildToggleButton(2, widget.strings['toggle_vision']!, Icons.visibility),
+              _buildToggleButton(0, l10n.toggleBarcode, Icons.barcode_reader),
+              _buildToggleButton(1, l10n.toggleManual,  Icons.edit_document),
+              _buildToggleButton(2, l10n.toggleVision,  Icons.visibility),
             ],
           ),
         ),
@@ -707,7 +887,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ..._buildModeContent(),
+              ..._buildModeContent(l10n),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
@@ -722,7 +902,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
                         onPressed: _handleSubmit,
                         icon: const Icon(Icons.inventory_2, color: Colors.white),
                         label: Text(
-                          widget.strings['btn_add']!,
+                          l10n.btnAdd,
                           style: GoogleFonts.quicksand(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                         style: ElevatedButton.styleFrom(
@@ -743,20 +923,15 @@ class _IntakePortalViewState extends State<IntakePortalView> {
     );
   }
 
-  List<Widget> _buildModeContent() {
-    if (_selectedMode == 0) {
-      return _buildBarcodeForm();
-    } else if (_selectedMode == 2) {
-      return _buildVisionForm();
-    } else {
-      return _buildManualForm();
-    }
+  List<Widget> _buildModeContent(AppLocalizations l10n) {
+    if (_selectedMode == 0) return _buildBarcodeForm(l10n);
+    if (_selectedMode == 2) return _buildVisionForm(l10n);
+    return _buildManualForm(l10n);
   }
 
-  // Mode 0: UPC text entry form
-  List<Widget> _buildBarcodeForm() {
+  List<Widget> _buildBarcodeForm(AppLocalizations l10n) {
     return [
-      Text(widget.strings['form_name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+      Text(l10n.formName, style: const TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 4),
       const Text('Enter the product UPC barcode number below.', style: TextStyle(color: AppColors.textVariant, fontSize: 13)),
       const SizedBox(height: 8),
@@ -764,19 +939,16 @@ class _IntakePortalViewState extends State<IntakePortalView> {
     ];
   }
 
-  // Mode 2: Vision image picker form
-  List<Widget> _buildVisionForm() {
+  List<Widget> _buildVisionForm(AppLocalizations l10n) {
     return [
-      Text(widget.strings['form_name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+      Text(l10n.formName, style: const TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 4),
       const Text('Select a photo of your leftover or packaged item.', style: TextStyle(color: AppColors.textVariant, fontSize: 13)),
       const SizedBox(height: 12),
       GestureDetector(
         onTap: _isLoading ? null : () async {
           final XFile? image = await _imagePicker.pickImage(source: ImageSource.gallery);
-          if (image != null) {
-            setState(() => _pickedImageName = image.name);
-          }
+          if (image != null) setState(() => _pickedImageName = image.name);
         },
         child: Container(
           width: double.infinity,
@@ -805,12 +977,11 @@ class _IntakePortalViewState extends State<IntakePortalView> {
     ];
   }
 
-  // Mode 1: Manual entry form — preserved exactly from original implementation
-  List<Widget> _buildManualForm() {
+  List<Widget> _buildManualForm(AppLocalizations l10n) {
     return [
-      Text(widget.strings['form_name']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+      Text(l10n.formName, style: const TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
-      _buildTextField(widget.strings['hint_name']!, controller: _nameController),
+      _buildTextField(l10n.hintName, controller: _nameController),
       const SizedBox(height: 16),
       Row(
         children: [
@@ -818,7 +989,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.strings['form_qty']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(l10n.formQty, style: const TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 _buildTextField('1', textAlign: TextAlign.center, controller: _qtyController),
               ],
@@ -829,9 +1000,9 @@ class _IntakePortalViewState extends State<IntakePortalView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.strings['form_zone']!, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(l10n.formZone, style: const TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                _buildTextField(widget.strings['hint_zone']!, controller: _zoneController),
+                _buildTextField(l10n.hintZone, controller: _zoneController),
               ],
             ),
           ),
@@ -841,7 +1012,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
   }
 
   Widget _buildToggleButton(int index, String label, IconData icon) {
-    bool isSelected = _selectedMode == index;
+    final bool isSelected = _selectedMode == index;
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _selectedMode = index),
@@ -857,13 +1028,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
             children: [
               Icon(icon, size: 18, color: isSelected ? AppColors.outline : AppColors.textVariant),
               const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isSelected ? AppColors.outline : AppColors.textVariant,
-                ),
-              ),
+              Text(label, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? AppColors.outline : AppColors.textVariant)),
             ],
           ),
         ),
@@ -899,12 +1064,17 @@ class _IntakePortalViewState extends State<IntakePortalView> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// PenguinTipsView
+// ---------------------------------------------------------------------------
+
 class PenguinTipsView extends StatelessWidget {
-  final Map<String, String> strings;
-  const PenguinTipsView({super.key, required this.strings});
+  const PenguinTipsView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -919,15 +1089,12 @@ class PenguinTipsView extends StatelessWidget {
                   border: Border.all(color: AppColors.outline, width: 2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(strings['tips_spotlight']!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.primary)),
+                child: Text(l10n.tipsSpotlight, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.primary)),
               ),
               const SizedBox(height: 16),
-              Text(strings['tips_title_1']!, style: GoogleFonts.quicksand(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text(l10n.tipsTitle1, style: GoogleFonts.quicksand(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              Text(
-                strings['tips_body_1']!,
-                style: const TextStyle(fontSize: 16, color: AppColors.textVariant),
-              ),
+              Text(l10n.tipsBody1, style: const TextStyle(fontSize: 16, color: AppColors.textVariant)),
             ],
           ),
         ),
@@ -948,12 +1115,9 @@ class PenguinTipsView extends StatelessWidget {
                 child: const Icon(Icons.eco, color: AppColors.primary),
               ),
               const SizedBox(height: 16),
-              Text(strings['tips_title_2']!, style: GoogleFonts.quicksand(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text(l10n.tipsTitle2, style: GoogleFonts.quicksand(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
               const SizedBox(height: 8),
-              Text(
-                strings['tips_body_2']!,
-                style: const TextStyle(color: Colors.white),
-              ),
+              Text(l10n.tipsBody2, style: const TextStyle(color: Colors.white)),
             ],
           ),
         ),

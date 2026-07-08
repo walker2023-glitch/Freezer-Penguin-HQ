@@ -40,6 +40,11 @@ google-genai>=1.0.0           # Google Gen AI SDK (modern unified client).
                               # and types.Part.from_bytes() for inline image data.
 
 # ---------------------------------------------------------------------------
+# Authentication — Feature 2.0 (Login & Registration Skeleton)
+# ---------------------------------------------------------------------------
+passlib[bcrypt]>=1.7.4        # BCrypt password hashing via CryptContext
+
+# ---------------------------------------------------------------------------
 # Development & CI — linting and test runner
 # ---------------------------------------------------------------------------
 flake8>=7.0.0                 # PEP 8 style enforcement; run via CI lint gate

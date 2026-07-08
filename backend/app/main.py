@@ -35,6 +35,8 @@ from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
 from app.database import engine  # noqa: E402
 from app import models  # noqa: E402
+from app.routers_analytics import router as analytics_router  # noqa: E402
+from app.routers_auth import router as auth_router  # noqa: E402
 from app.routers_inventory import router as inventory_router  # noqa: E402
 from app.routers_vision_ingestion import router as vision_router  # noqa: E402
 from app.routers_recipes import router as recipes_router  # noqa: E402
@@ -68,10 +70,11 @@ app = FastAPI(
     description=(
         "REST API platform handling intelligent freezer inventory tracking "
         "via barcode ingestion (Feature 1.1), Gemini Vision leftover "
-        "ingestion (Feature 1.2), inventory fetch (Feature 1.0), and "
-        "expiration-driven recipe suggestions (Feature 1.3)."
+        "ingestion (Feature 1.2), inventory fetch (Feature 1.0), "
+        "expiration-driven recipe suggestions (Feature 1.3), and "
+        "user authentication (Feature 2.0)."
     ),
-    version="1.3.0",
+    version="2.0.0",
 )
 
 # ---------------------------------------------------------------------------
@@ -95,6 +98,8 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 # Router registration — all feature routers under /api/v1
 # ---------------------------------------------------------------------------
+app.include_router(analytics_router, prefix="/api/v1")
+app.include_router(auth_router, prefix="/api/v1")
 app.include_router(inventory_router, prefix="/api/v1")
 app.include_router(vision_router, prefix="/api/v1")
 app.include_router(recipes_router, prefix="/api/v1")
@@ -111,5 +116,7 @@ def health_check():
             "1.1 Barcode Ingestion",
             "1.2 Gemini Vision Ingestion",
             "1.3 Recipe Suggestions Engine",
+            "2.0 User Authentication",
+            "6.0 Pantry Insights Analytics (SQL scaffold)",
         ],
     }
