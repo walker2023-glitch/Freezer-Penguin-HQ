@@ -33,9 +33,9 @@
   "settings": "Configuración",
   "settingsThemeHeader": "TEMA",
   "settingsLanguageHeader": "IDIOMA",
-  "themeNameGlacier": "Glaciar Helado",
-  "themeNameKitchen": "Cocina Fresca",
-  "themeNameOcean": "Océano Profundo",
+  "themeNameGlacier": "Ártico",
+  "themeNameKitchen": "Claro",
+  "themeNameOcean": "Oscuro",
 
   "loginTitle": "Iniciar Sesión",
   "registerTitle": "Crear Cuenta",
@@ -78,5 +78,27 @@
   "consumeLogMacros": "Registrar Macros",
   "consumeSectionPhoto": "Fotografía tu Comida",
   "consumePhotoHint": "Sube una foto para registrar visualmente lo que comiste.",
-  "consumePhotoBtn": "Subir Foto"
+  "consumePhotoBtn": "Subir Foto",
+
+  "inventoryEmpty": "Tu congelador está vacío.\n¡Toca \u002B para escanear un código o usar Visión!",
+  "inventoryLoadError": "No se pudo cargar el inventario.",
+
+  "insightsTitle": "Perspectivas del Despensero",
+  "insightsLoadError": "No se pudieron cargar las perspectivas.",
+  "insightsRetry": "Reintentar",
+  "insightsHighPriorityTitle": "Alerta de Alta Prioridad",
+  "insightsHealthTitle": "Salud del Despensero",
+  "insightsItemsLabel": "artículos",
+  "insightsSafe": "Seguro",
+  "insightsUseSoon": "Usar Pronto",
+  "insightsExpired": "Vencido",
+  "insightsDays7Plus": "\u2265 7 días",
+  "insightsDays1to6": "1\u20136 días",
+  "insightsPastDate": "Fecha pasada",
+  "insightsReadyToCook": "Listo para Cocinar",
+  "insightsZones": "Zonas",
+  "insightsTopPicks": "Más Populares",
+  "insightsShoppingList": "Lista de Compras",
+  "insightsShoppingSub": "Ingredientes faltantes para tus recetas guardadas.",
+  "insightsBuyBtn": "Comprar"
 }

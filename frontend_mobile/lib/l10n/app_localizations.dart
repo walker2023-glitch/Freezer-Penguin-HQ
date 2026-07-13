@@ -293,22 +293,22 @@ abstract class AppLocalizations {
   /// **'LANGUAGE'**
   String get settingsLanguageHeader;
 
-  /// Theme selector option label.
+  /// Theme selector option label — Arctic / icy blue theme.
   ///
   /// In en, this message translates to:
-  /// **'Frozen Glacier'**
+  /// **'Arctic'**
   String get themeNameGlacier;
 
-  /// Theme selector option label.
+  /// Theme selector option label — Light / crisp white theme.
   ///
   /// In en, this message translates to:
-  /// **'Crisp Kitchen'**
+  /// **'Light'**
   String get themeNameKitchen;
 
-  /// Theme selector option label.
+  /// Theme selector option label — Dark / deep navy theme.
   ///
   /// In en, this message translates to:
-  /// **'Deep Ocean'**
+  /// **'Dark'**
   String get themeNameOcean;
 
   /// Login screen heading and button label.
@@ -538,6 +538,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Upload Photo'**
   String get consumePhotoBtn;
+
+  /// Empty-state message shown in the Ice Floe / inventory screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Your freezer is empty.\nTap + to scan a barcode or use Vision!'**
+  String get inventoryEmpty;
+
+  /// Error text shown when the inventory fetch fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load inventory.'**
+  String get inventoryLoadError;
+
+  /// AppBar title for the Pantry Insights analytics screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Pantry Insights'**
+  String get insightsTitle;
+
+  /// Error text shown when the analytics API fetch fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load insights.'**
+  String get insightsLoadError;
+
+  /// Retry button label on the analytics error state.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get insightsRetry;
+
+  /// Section title for the SUBQUERY alert banner.
+  ///
+  /// In en, this message translates to:
+  /// **'High Priority Alert'**
+  String get insightsHighPriorityTitle;
+
+  /// Section title for the CONDITIONAL ring chart card.
+  ///
+  /// In en, this message translates to:
+  /// **'Pantry Health'**
+  String get insightsHealthTitle;
+
+  /// Centre label beneath the total count in the ring chart.
+  ///
+  /// In en, this message translates to:
+  /// **'items'**
+  String get insightsItemsLabel;
+
+  /// Ring chart legend label — safe items (≥ 7 days).
+  ///
+  /// In en, this message translates to:
+  /// **'Safe'**
+  String get insightsSafe;
+
+  /// Ring chart legend label — items expiring in 1–6 days.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Soon'**
+  String get insightsUseSoon;
+
+  /// Ring chart legend label — past-date items.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get insightsExpired;
+
+  /// Ring chart legend subtitle for the Safe bucket.
+  ///
+  /// In en, this message translates to:
+  /// **'≥ 7 days'**
+  String get insightsDays7Plus;
+
+  /// Ring chart legend subtitle for the Use Soon bucket.
+  ///
+  /// In en, this message translates to:
+  /// **'1–6 days'**
+  String get insightsDays1to6;
+
+  /// Ring chart legend subtitle for the Expired bucket.
+  ///
+  /// In en, this message translates to:
+  /// **'Past date'**
+  String get insightsPastDate;
+
+  /// Section label for the INNER JOIN + FUNCTION carousel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to Cook Now'**
+  String get insightsReadyToCook;
+
+  /// Section label for the AGGREGATE storage-zone card.
+  ///
+  /// In en, this message translates to:
+  /// **'Zones'**
+  String get insightsZones;
+
+  /// Section label for the WINDOW leaderboard card.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Picks'**
+  String get insightsTopPicks;
+
+  /// Section label for the OUTER JOIN missing-ingredients card.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping List'**
+  String get insightsShoppingList;
+
+  /// Subtitle under the Shopping List section header.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing ingredients for your saved recipes.'**
+  String get insightsShoppingSub;
+
+  /// Action pill on each shopping list row.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy'**
+  String get insightsBuyBtn;
 }
 
 class _AppLocalizationsDelegate

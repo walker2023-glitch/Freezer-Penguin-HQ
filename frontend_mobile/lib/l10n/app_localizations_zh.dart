@@ -107,13 +107,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsLanguageHeader => 'LANGUAGE';
 
   @override
-  String get themeNameGlacier => 'Frozen Glacier';
+  String get themeNameGlacier => 'Arctic';
 
   @override
-  String get themeNameKitchen => 'Crisp Kitchen';
+  String get themeNameKitchen => 'Light';
 
   @override
-  String get themeNameOcean => 'Deep Ocean';
+  String get themeNameOcean => 'Dark';
 
   @override
   String get loginTitle => 'Sign In';
@@ -229,6 +229,68 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get consumePhotoBtn => 'Upload Photo';
+
+  @override
+  String get inventoryEmpty =>
+      'Your freezer is empty.\nTap + to scan a barcode or use Vision!';
+
+  @override
+  String get inventoryLoadError => 'Could not load inventory.';
+
+  @override
+  String get insightsTitle => 'Pantry Insights';
+
+  @override
+  String get insightsLoadError => 'Could not load insights.';
+
+  @override
+  String get insightsRetry => 'Retry';
+
+  @override
+  String get insightsHighPriorityTitle => 'High Priority Alert';
+
+  @override
+  String get insightsHealthTitle => 'Pantry Health';
+
+  @override
+  String get insightsItemsLabel => 'items';
+
+  @override
+  String get insightsSafe => 'Safe';
+
+  @override
+  String get insightsUseSoon => 'Use Soon';
+
+  @override
+  String get insightsExpired => 'Expired';
+
+  @override
+  String get insightsDays7Plus => '≥ 7 days';
+
+  @override
+  String get insightsDays1to6 => '1–6 days';
+
+  @override
+  String get insightsPastDate => 'Past date';
+
+  @override
+  String get insightsReadyToCook => 'Ready to Cook Now';
+
+  @override
+  String get insightsZones => 'Zones';
+
+  @override
+  String get insightsTopPicks => 'Top Picks';
+
+  @override
+  String get insightsShoppingList => 'Shopping List';
+
+  @override
+  String get insightsShoppingSub =>
+      'Missing ingredients for your saved recipes.';
+
+  @override
+  String get insightsBuyBtn => 'Buy';
 }
 
 /// The translations for Chinese, as used in Hong Kong (`zh_HK`).
@@ -332,13 +394,13 @@ class AppLocalizationsZhHk extends AppLocalizationsZh {
   String get settingsLanguageHeader => '語言';
 
   @override
-  String get themeNameGlacier => '冰川主題';
+  String get themeNameGlacier => '北極';
 
   @override
-  String get themeNameKitchen => '廚房主題';
+  String get themeNameKitchen => '淺色';
 
   @override
-  String get themeNameOcean => '深海主題';
+  String get themeNameOcean => '深色';
 
   @override
   String get loginTitle => '登入';
@@ -453,4 +515,64 @@ class AppLocalizationsZhHk extends AppLocalizationsZh {
 
   @override
   String get consumePhotoBtn => '上傳相片';
+
+  @override
+  String get inventoryEmpty => '你嘅雪櫃係空㗎。\n撳 + 掃描條碼或用影像識別新增物品！';
+
+  @override
+  String get inventoryLoadError => '無法載入庫存。';
+
+  @override
+  String get insightsTitle => '食物洞察';
+
+  @override
+  String get insightsLoadError => '無法載入分析數據。';
+
+  @override
+  String get insightsRetry => '重試';
+
+  @override
+  String get insightsHighPriorityTitle => '高優先警報';
+
+  @override
+  String get insightsHealthTitle => '食物健康狀況';
+
+  @override
+  String get insightsItemsLabel => '件';
+
+  @override
+  String get insightsSafe => '安全';
+
+  @override
+  String get insightsUseSoon => '盡快使用';
+
+  @override
+  String get insightsExpired => '已過期';
+
+  @override
+  String get insightsDays7Plus => '≥ 7 天';
+
+  @override
+  String get insightsDays1to6 => '1–6 天';
+
+  @override
+  String get insightsPastDate => '已過期日';
+
+  @override
+  String get insightsReadyToCook => '立即可烹飪';
+
+  @override
+  String get insightsZones => '儲存區域';
+
+  @override
+  String get insightsTopPicks => '最受歡迎';
+
+  @override
+  String get insightsShoppingList => '購物清單';
+
+  @override
+  String get insightsShoppingSub => '您已儲存食譜中所缺少的食材。';
+
+  @override
+  String get insightsBuyBtn => '購買';
 }

@@ -21,6 +21,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 
 import '../config.dart';
+import '../l10n/app_localizations.dart';
 import '../widgets/bento_card.dart';
 
 // ── Analytics-specific color constants ───────────────────────────────────────
@@ -37,6 +38,7 @@ class PantryInsightsScreen extends StatefulWidget {
 
 class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
   late Future<Map<String, dynamic>> _insightsFuture;
+  late AppLocalizations _l10n;
 
   @override
   void initState() {
@@ -56,6 +58,7 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -72,7 +75,7 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
             const Icon(Icons.insights, color: AppColors.primary, size: 24),
             const SizedBox(width: 10),
             Text(
-              'Pantry Insights',
+              _l10n.insightsTitle,
               style: GoogleFonts.quicksand(
                 color: AppColors.outline,
                 fontWeight: FontWeight.w800,
@@ -102,7 +105,7 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Could not load insights.',
+                    _l10n.insightsLoadError,
                     style: GoogleFonts.quicksand(
                       fontWeight: FontWeight.bold,
                       color: AppColors.outline,
@@ -124,7 +127,7 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
                     ),
                     icon: const Icon(Icons.refresh, color: Colors.white),
                     label: Text(
-                      'Retry',
+                      _l10n.insightsRetry,
                       style: GoogleFonts.quicksand(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -197,9 +200,34 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
         border: Border.all(color: AppColors.outline, width: 2),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── SUBQUERY badge ────────────────────────────────────────────────
+          Align(
+            alignment: Alignment.topRight,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(40),
+                border: Border.all(color: Colors.white.withAlpha(120), width: 1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'SUBQUERY',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           // Icon badge
           Container(
             width: 52,
@@ -230,7 +258,7 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'High Priority Alert',
+                  _l10n.insightsHighPriorityTitle,
                   style: GoogleFonts.quicksand(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
@@ -259,6 +287,8 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
               ],
             ),
           ),
+        ],
+          ),  // Row (icon + text)
         ],
       ),
     );
@@ -298,7 +328,7 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
         children: [
           _sectionLabel(
             icon: Icons.donut_large_rounded,
-            label: 'Pantry Health',
+            label: _l10n.insightsHealthTitle,
             badge: 'CONDITIONAL',
           ),
           const SizedBox(height: 20),
@@ -331,9 +361,9 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
                             color: AppColors.outline,
                           ),
                         ),
-                        const Text(
-                          'items',
-                          style: TextStyle(
+                        Text(
+                          _l10n.insightsItemsLabel,
+                          style: const TextStyle(
                             color: AppColors.textVariant,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -352,23 +382,23 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
                   children: [
                     _legendItem(
                       color: _kSafeGreen,
-                      label: 'Safe',
+                      label: _l10n.insightsSafe,
                       count: safe,
-                      subtitle: '≥ 7 days',
+                      subtitle: _l10n.insightsDays7Plus,
                     ),
                     const SizedBox(height: 14),
                     _legendItem(
                       color: AppColors.orange,
-                      label: 'Use Soon',
+                      label: _l10n.insightsUseSoon,
                       count: useSoon,
-                      subtitle: '1–6 days',
+                      subtitle: _l10n.insightsDays1to6,
                     ),
                     const SizedBox(height: 14),
                     _legendItem(
                       color: _kDangerRed,
-                      label: 'Expired',
+                      label: _l10n.insightsExpired,
                       count: expired,
-                      subtitle: 'Past date',
+                      subtitle: _l10n.insightsPastDate,
                     ),
                   ],
                 ),
@@ -447,7 +477,7 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
           padding: const EdgeInsets.only(bottom: 10),
           child: _sectionLabel(
             icon: Icons.soup_kitchen_outlined,
-            label: 'Ready to Cook Now',
+            label: _l10n.insightsReadyToCook,
             badge: 'INNER JOIN + FUNCTION',
           ),
         ),
@@ -574,7 +604,7 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
         children: [
           _sectionLabel(
             icon: Icons.location_on_outlined,
-            label: 'Zones',
+            label: _l10n.insightsZones,
             badge: 'AGGREGATE',
             compact: true,
           ),
@@ -641,7 +671,7 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
         children: [
           _sectionLabel(
             icon: Icons.emoji_events_outlined,
-            label: 'Top Picks',
+            label: _l10n.insightsTopPicks,
             badge: 'WINDOW',
             compact: true,
           ),
@@ -711,13 +741,13 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
         children: [
           _sectionLabel(
             icon: Icons.shopping_cart_outlined,
-            label: 'Shopping List',
+            label: _l10n.insightsShoppingList,
             badge: 'OUTER JOIN',
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Missing ingredients for your saved recipes.',
-            style: TextStyle(color: AppColors.textVariant, fontSize: 13),
+          Text(
+            _l10n.insightsShoppingSub,
+            style: const TextStyle(color: AppColors.textVariant, fontSize: 13),
           ),
           const SizedBox(height: 16),
           for (final raw in items)
@@ -780,8 +810,8 @@ class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
-              'Buy',
-              style: TextStyle(
+              _l10n.insightsBuyBtn,
+              style: const TextStyle(
                 color: AppColors.primary,
                 fontSize: 11,
                 fontWeight: FontWeight.bold,

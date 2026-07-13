@@ -1,8 +1,9 @@
-// App-wide UI settings state — Phase 5 extraction.
+// App-wide UI settings state.
 //
-// Moved out of main.dart so screens in lib/screens/ (e.g. ConsumeScreen)
-// can import AppTheme / AppSettings without creating a circular dependency
-// against main.dart.
+// AppTheme enum renamed to plain descriptive values (FIX 2):
+//   arctic  — icy blue palette  (was frozenGlacier)
+//   light   — clean white/cream (was crispKitchen)
+//   dark    — deep navy/black   (was deepOcean)
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,7 +14,9 @@ import '../config.dart';
 // ENUMS
 // ─────────────────────────────────────────────────────────────────────────────
 
-enum AppTheme { frozenGlacier, crispKitchen, deepOcean }
+/// Three visual themes inspired by the Freezer Penguin brand palette:
+/// icy blues (#D1E6F7 / #00A3FF), crisp white (#FFFFFF), and orange (#F37321).
+enum AppTheme { arctic, light, dark }
 
 /// UI locale selector. Maps to a Flutter [Locale] via [toLocale()].
 enum AppLocale { en, yue, es }
@@ -33,16 +36,16 @@ extension AppLocaleExtension on AppLocale {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class AppSettings extends ChangeNotifier {
-  AppTheme _theme = AppTheme.frozenGlacier;
+  AppTheme _theme = AppTheme.arctic;
   AppLocale _locale = AppLocale.en;
 
   AppTheme get theme => _theme;
   AppLocale get locale => _locale;
   Locale get flutterLocale => _locale.toLocale();
 
-  /// Returns true when the active theme is the Frozen Glacier / Arctic preset.
-  /// Used by nav and screens to switch between Standard and Arctic labels/icons.
-  bool get isArctic => _theme == AppTheme.frozenGlacier;
+  /// True when the Arctic theme is active — drives "Basecamp / Rations / Huddle"
+  /// nav labels and the polar icon set.
+  bool get isArctic => _theme == AppTheme.arctic;
 
   void setTheme(AppTheme t) {
     if (_theme == t) return;
@@ -58,22 +61,24 @@ class AppSettings extends ChangeNotifier {
 
   ThemeData buildTheme() {
     switch (_theme) {
-      case AppTheme.deepOcean:
+      // ── Dark — deep navy inspired by the penguin's dark feathers ────────
+      case AppTheme.dark:
         return ThemeData(
-          scaffoldBackgroundColor: AppColors.deepOceanBackground,
+          scaffoldBackgroundColor: AppColors.darkBackground,
           textTheme: GoogleFonts.quicksandTextTheme().apply(
-            bodyColor: AppColors.deepOceanText,
-            displayColor: AppColors.deepOceanText,
+            bodyColor: AppColors.darkText,
+            displayColor: AppColors.darkText,
           ),
           colorScheme: ColorScheme.dark(
             primary: AppColors.primary,
             secondary: AppColors.orange,
-            surface: AppColors.deepOceanSurface,
+            surface: AppColors.darkSurface,
           ),
         );
-      case AppTheme.crispKitchen:
+      // ── Light — crisp white belly inspired by the penguin's white chest ─
+      case AppTheme.light:
         return ThemeData(
-          scaffoldBackgroundColor: AppColors.crispKitchenBackground,
+          scaffoldBackgroundColor: AppColors.lightBackground,
           textTheme: GoogleFonts.quicksandTextTheme().apply(
             bodyColor: AppColors.outline,
             displayColor: AppColors.outline,
@@ -81,12 +86,13 @@ class AppSettings extends ChangeNotifier {
           colorScheme: ColorScheme.light(
             primary: AppColors.primary,
             secondary: AppColors.orange,
-            surface: AppColors.crispKitchenSurface,
+            surface: AppColors.lightSurface,
           ),
         );
-      case AppTheme.frozenGlacier:
+      // ── Arctic — icy sky blues inspired by the snowflake background ─────
+      case AppTheme.arctic:
         return ThemeData(
-          scaffoldBackgroundColor: AppColors.antarcticBackground,
+          scaffoldBackgroundColor: AppColors.arcticBackground,
           textTheme: GoogleFonts.quicksandTextTheme().apply(
             bodyColor: AppColors.outline,
             displayColor: AppColors.outline,
@@ -94,7 +100,7 @@ class AppSettings extends ChangeNotifier {
           colorScheme: ColorScheme.light(
             primary: AppColors.primary,
             secondary: AppColors.orange,
-            surface: AppColors.antarcticSurface,
+            surface: AppColors.arcticSurface,
           ),
         );
     }

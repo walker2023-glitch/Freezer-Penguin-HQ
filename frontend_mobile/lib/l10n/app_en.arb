@@ -97,14 +97,14 @@
   "settingsLanguageHeader": "LANGUAGE",
   "@settingsLanguageHeader": { "description": "Settings sheet language section header." },
 
-  "themeNameGlacier": "Frozen Glacier",
-  "@themeNameGlacier": { "description": "Theme selector option label." },
+  "themeNameGlacier": "Arctic",
+  "@themeNameGlacier": { "description": "Theme selector option label — Arctic / icy blue theme." },
 
-  "themeNameKitchen": "Crisp Kitchen",
-  "@themeNameKitchen": { "description": "Theme selector option label." },
+  "themeNameKitchen": "Light",
+  "@themeNameKitchen": { "description": "Theme selector option label — Light / crisp white theme." },
 
-  "themeNameOcean": "Deep Ocean",
-  "@themeNameOcean": { "description": "Theme selector option label." },
+  "themeNameOcean": "Dark",
+  "@themeNameOcean": { "description": "Theme selector option label — Dark / deep navy theme." },
 
   "loginTitle": "Sign In",
   "@loginTitle": { "description": "Login screen heading and button label." },
@@ -218,5 +218,65 @@
   "@consumePhotoHint": { "description": "Helper text inside the meal photo card." },
 
   "consumePhotoBtn": "Upload Photo",
-  "@consumePhotoBtn": { "description": "Button that opens the image picker for meal photo upload." }
+  "@consumePhotoBtn": { "description": "Button that opens the image picker for meal photo upload." },
+
+  "inventoryEmpty": "Your freezer is empty.\nTap \u002B to scan a barcode or use Vision!",
+  "@inventoryEmpty": { "description": "Empty-state message shown in the Ice Floe / inventory screen." },
+
+  "inventoryLoadError": "Could not load inventory.",
+  "@inventoryLoadError": { "description": "Error text shown when the inventory fetch fails." },
+
+  "insightsTitle": "Pantry Insights",
+  "@insightsTitle": { "description": "AppBar title for the Pantry Insights analytics screen." },
+
+  "insightsLoadError": "Could not load insights.",
+  "@insightsLoadError": { "description": "Error text shown when the analytics API fetch fails." },
+
+  "insightsRetry": "Retry",
+  "@insightsRetry": { "description": "Retry button label on the analytics error state." },
+
+  "insightsHighPriorityTitle": "High Priority Alert",
+  "@insightsHighPriorityTitle": { "description": "Section title for the SUBQUERY alert banner." },
+
+  "insightsHealthTitle": "Pantry Health",
+  "@insightsHealthTitle": { "description": "Section title for the CONDITIONAL ring chart card." },
+
+  "insightsItemsLabel": "items",
+  "@insightsItemsLabel": { "description": "Centre label beneath the total count in the ring chart." },
+
+  "insightsSafe": "Safe",
+  "@insightsSafe": { "description": "Ring chart legend label — safe items (≥ 7 days)." },
+
+  "insightsUseSoon": "Use Soon",
+  "@insightsUseSoon": { "description": "Ring chart legend label — items expiring in 1–6 days." },
+
+  "insightsExpired": "Expired",
+  "@insightsExpired": { "description": "Ring chart legend label — past-date items." },
+
+  "insightsDays7Plus": "\u2265 7 days",
+  "@insightsDays7Plus": { "description": "Ring chart legend subtitle for the Safe bucket." },
+
+  "insightsDays1to6": "1\u20136 days",
+  "@insightsDays1to6": { "description": "Ring chart legend subtitle for the Use Soon bucket." },
+
+  "insightsPastDate": "Past date",
+  "@insightsPastDate": { "description": "Ring chart legend subtitle for the Expired bucket." },
+
+  "insightsReadyToCook": "Ready to Cook Now",
+  "@insightsReadyToCook": { "description": "Section label for the INNER JOIN + FUNCTION carousel." },
+
+  "insightsZones": "Zones",
+  "@insightsZones": { "description": "Section label for the AGGREGATE storage-zone card." },
+
+  "insightsTopPicks": "Top Picks",
+  "@insightsTopPicks": { "description": "Section label for the WINDOW leaderboard card." },
+
+  "insightsShoppingList": "Shopping List",
+  "@insightsShoppingList": { "description": "Section label for the OUTER JOIN missing-ingredients card." },
+
+  "insightsShoppingSub": "Missing ingredients for your saved recipes.",
+  "@insightsShoppingSub": { "description": "Subtitle under the Shopping List section header." },
+
+  "insightsBuyBtn": "Buy",
+  "@insightsBuyBtn": { "description": "Action pill on each shopping list row." }
 }

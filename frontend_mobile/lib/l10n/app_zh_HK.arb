@@ -33,9 +33,9 @@
   "settings": "設定",
   "settingsThemeHeader": "主題",
   "settingsLanguageHeader": "語言",
-  "themeNameGlacier": "冰川主題",
-  "themeNameKitchen": "廚房主題",
-  "themeNameOcean": "深海主題",
+  "themeNameGlacier": "北極",
+  "themeNameKitchen": "淺色",
+  "themeNameOcean": "深色",
 
   "loginTitle": "登入",
   "registerTitle": "建立帳號",
@@ -78,5 +78,27 @@
   "consumeLogMacros": "記錄宏量",
   "consumeSectionPhoto": "拍下你嘅餐食",
   "consumePhotoHint": "上傳相片以記錄你嘅餐食。",
-  "consumePhotoBtn": "上傳相片"
+  "consumePhotoBtn": "上傳相片",
+
+  "inventoryEmpty": "你嘅雪櫃係空㗎。\n撳 \u002B 掃描條碼或用影像識別新增物品！",
+  "inventoryLoadError": "無法載入庫存。",
+
+  "insightsTitle": "食物洞察",
+  "insightsLoadError": "無法載入分析數據。",
+  "insightsRetry": "重試",
+  "insightsHighPriorityTitle": "高優先警報",
+  "insightsHealthTitle": "食物健康狀況",
+  "insightsItemsLabel": "件",
+  "insightsSafe": "安全",
+  "insightsUseSoon": "盡快使用",
+  "insightsExpired": "已過期",
+  "insightsDays7Plus": "\u2265 7 天",
+  "insightsDays1to6": "1\u20136 天",
+  "insightsPastDate": "已過期日",
+  "insightsReadyToCook": "立即可烹飪",
+  "insightsZones": "儲存區域",
+  "insightsTopPicks": "最受歡迎",
+  "insightsShoppingList": "購物清單",
+  "insightsShoppingSub": "您已儲存食譜中所缺少的食材。",
+  "insightsBuyBtn": "購買"
 }

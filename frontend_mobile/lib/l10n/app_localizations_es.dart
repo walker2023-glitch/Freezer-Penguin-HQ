@@ -107,13 +107,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsLanguageHeader => 'IDIOMA';
 
   @override
-  String get themeNameGlacier => 'Glaciar Helado';
+  String get themeNameGlacier => 'Ártico';
 
   @override
-  String get themeNameKitchen => 'Cocina Fresca';
+  String get themeNameKitchen => 'Claro';
 
   @override
-  String get themeNameOcean => 'Océano Profundo';
+  String get themeNameOcean => 'Oscuro';
 
   @override
   String get loginTitle => 'Iniciar Sesión';
@@ -232,4 +232,66 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get consumePhotoBtn => 'Subir Foto';
+
+  @override
+  String get inventoryEmpty =>
+      'Tu congelador está vacío.\n¡Toca + para escanear un código o usar Visión!';
+
+  @override
+  String get inventoryLoadError => 'No se pudo cargar el inventario.';
+
+  @override
+  String get insightsTitle => 'Perspectivas del Despensero';
+
+  @override
+  String get insightsLoadError => 'No se pudieron cargar las perspectivas.';
+
+  @override
+  String get insightsRetry => 'Reintentar';
+
+  @override
+  String get insightsHighPriorityTitle => 'Alerta de Alta Prioridad';
+
+  @override
+  String get insightsHealthTitle => 'Salud del Despensero';
+
+  @override
+  String get insightsItemsLabel => 'artículos';
+
+  @override
+  String get insightsSafe => 'Seguro';
+
+  @override
+  String get insightsUseSoon => 'Usar Pronto';
+
+  @override
+  String get insightsExpired => 'Vencido';
+
+  @override
+  String get insightsDays7Plus => '≥ 7 días';
+
+  @override
+  String get insightsDays1to6 => '1–6 días';
+
+  @override
+  String get insightsPastDate => 'Fecha pasada';
+
+  @override
+  String get insightsReadyToCook => 'Listo para Cocinar';
+
+  @override
+  String get insightsZones => 'Zonas';
+
+  @override
+  String get insightsTopPicks => 'Más Populares';
+
+  @override
+  String get insightsShoppingList => 'Lista de Compras';
+
+  @override
+  String get insightsShoppingSub =>
+      'Ingredientes faltantes para tus recetas guardadas.';
+
+  @override
+  String get insightsBuyBtn => 'Comprar';
 }

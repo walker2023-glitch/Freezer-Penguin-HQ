@@ -107,13 +107,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLanguageHeader => 'LANGUAGE';
 
   @override
-  String get themeNameGlacier => 'Frozen Glacier';
+  String get themeNameGlacier => 'Arctic';
 
   @override
-  String get themeNameKitchen => 'Crisp Kitchen';
+  String get themeNameKitchen => 'Light';
 
   @override
-  String get themeNameOcean => 'Deep Ocean';
+  String get themeNameOcean => 'Dark';
 
   @override
   String get loginTitle => 'Sign In';
@@ -229,4 +229,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get consumePhotoBtn => 'Upload Photo';
+
+  @override
+  String get inventoryEmpty =>
+      'Your freezer is empty.\nTap + to scan a barcode or use Vision!';
+
+  @override
+  String get inventoryLoadError => 'Could not load inventory.';
+
+  @override
+  String get insightsTitle => 'Pantry Insights';
+
+  @override
+  String get insightsLoadError => 'Could not load insights.';
+
+  @override
+  String get insightsRetry => 'Retry';
+
+  @override
+  String get insightsHighPriorityTitle => 'High Priority Alert';
+
+  @override
+  String get insightsHealthTitle => 'Pantry Health';
+
+  @override
+  String get insightsItemsLabel => 'items';
+
+  @override
+  String get insightsSafe => 'Safe';
+
+  @override
+  String get insightsUseSoon => 'Use Soon';
+
+  @override
+  String get insightsExpired => 'Expired';
+
+  @override
+  String get insightsDays7Plus => '≥ 7 days';
+
+  @override
+  String get insightsDays1to6 => '1–6 days';
+
+  @override
+  String get insightsPastDate => 'Past date';
+
+  @override
+  String get insightsReadyToCook => 'Ready to Cook Now';
+
+  @override
+  String get insightsZones => 'Zones';
+
+  @override
+  String get insightsTopPicks => 'Top Picks';
+
+  @override
+  String get insightsShoppingList => 'Shopping List';
+
+  @override
+  String get insightsShoppingSub =>
+      'Missing ingredients for your saved recipes.';
+
+  @override
+  String get insightsBuyBtn => 'Buy';
 }

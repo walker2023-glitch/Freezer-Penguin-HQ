@@ -140,14 +140,52 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         shape: const Border(bottom: BorderSide(color: AppColors.outline, width: 2)),
         title: Row(
           children: [
-            const Icon(Icons.ac_unit, color: AppColors.primary, size: 28),
-            const SizedBox(width: 8),
+            // Penguin brand mark — dark body / orange beak circle
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: AppColors.outline,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.primary, width: 2),
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // White belly oval
+                  Positioned(
+                    bottom: 5,
+                    child: Container(
+                      width: 14,
+                      height: 14,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  // Orange beak dot
+                  Positioned(
+                    top: 6,
+                    child: Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: AppColors.orange,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
             Text(
               l10n.appTitle,
               style: GoogleFonts.quicksand(
                 color: AppColors.outline,
-                fontWeight: FontWeight.w700,
-                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                fontSize: 22,
                 letterSpacing: -0.5,
               ),
             ),
@@ -161,6 +199,71 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
         ],
       ),
+      // Centre FAB — opens the Intake Portal (Barcode / Vision / Manual entry).
+      // FloatingActionButtonLocation.centerDocked slots the button into the
+      // notch of the BottomAppBar, making it the most prominent action on screen.
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.orange,
+        foregroundColor: Colors.white,
+        tooltip: l10n.tabIntake,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.outline, width: 2),
+        ),
+        onPressed: () {
+          showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => DraggableScrollableSheet(
+              initialChildSize: 0.92,
+              minChildSize: 0.5,
+              maxChildSize: 0.97,
+              expand: false,
+              builder: (_, scrollController) => Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
+                  ),
+                  border: const Border(
+                    top: BorderSide(color: AppColors.outline, width: 2),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Drag handle
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: AppColors.textVariant.withAlpha(100),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      // IntakePortalView owns the ListView — pass the sheet
+                      // controller directly; do NOT wrap in another scroll view.
+                      child: IntakePortalView(scrollController: scrollController),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+        child: const Icon(Icons.add_rounded, size: 30),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+
       // IndexedStack keeps all tab widgets alive so state is preserved
       body: IndexedStack(
         index: _currentIndex,
@@ -263,11 +366,11 @@ class _SettingsSheet extends StatelessWidget {
             style: GoogleFonts.quicksand(fontWeight: FontWeight.bold, fontSize: 12, color: AppColors.textVariant, letterSpacing: 1.2),
           ),
           const SizedBox(height: 10),
-          _ThemeOption(label: l10n.themeNameGlacier, icon: Icons.ac_unit,          value: AppTheme.frozenGlacier, settings: settings),
+          _ThemeOption(label: l10n.themeNameGlacier, icon: Icons.ac_unit,           value: AppTheme.arctic, settings: settings),
           const SizedBox(height: 8),
-          _ThemeOption(label: l10n.themeNameKitchen, icon: Icons.wb_sunny_outlined, value: AppTheme.crispKitchen,  settings: settings),
+          _ThemeOption(label: l10n.themeNameKitchen, icon: Icons.wb_sunny_outlined, value: AppTheme.light,  settings: settings),
           const SizedBox(height: 8),
-          _ThemeOption(label: l10n.themeNameOcean,   icon: Icons.dark_mode_outlined, value: AppTheme.deepOcean,   settings: settings),
+          _ThemeOption(label: l10n.themeNameOcean,   icon: Icons.dark_mode_outlined, value: AppTheme.dark,  settings: settings),
           const SizedBox(height: 24),
 
           // ── Language ───────────────────────────────────────────────────────
@@ -645,7 +748,7 @@ class _IceFloeViewState extends State<IceFloeView> {
                 padding: const EdgeInsets.only(top: 32),
                 child: Center(
                   child: Text(
-                    'Could not load inventory.\n${snapshot.error}',
+                    '${l10n.inventoryLoadError}\n${snapshot.error}',
                     style: const TextStyle(color: AppColors.textVariant, fontSize: 15),
                     textAlign: TextAlign.center,
                   ),
@@ -654,13 +757,59 @@ class _IceFloeViewState extends State<IceFloeView> {
             }
             final items = snapshot.data ?? [];
             if (items.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.only(top: 48),
+              return Padding(
+                padding: const EdgeInsets.only(top: 48),
                 child: Center(
-                  child: Text(
-                    'Your freezer is empty.\nScan a barcode or use Vision to add items!',
-                    style: TextStyle(color: AppColors.textVariant, fontSize: 16),
-                    textAlign: TextAlign.center,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Penguin empty-state illustration
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: AppColors.outline,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: AppColors.primary, width: 2.5),
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Positioned(
+                              bottom: 14,
+                              child: Container(
+                                width: 34,
+                                height: 34,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 16,
+                              child: Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: AppColors.orange,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.inventoryEmpty,
+                        style: const TextStyle(
+                          color: AppColors.textVariant,
+                          fontSize: 15,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -736,7 +885,11 @@ class _IceFloeViewState extends State<IceFloeView> {
 // ---------------------------------------------------------------------------
 
 class IntakePortalView extends StatefulWidget {
-  const IntakePortalView({super.key});
+  const IntakePortalView({super.key, this.scrollController});
+
+  /// Optional controller from [DraggableScrollableSheet] so the sheet and
+  /// the intake list share a single scrollable (avoids unbounded height).
+  final ScrollController? scrollController;
 
   @override
   State<IntakePortalView> createState() => _IntakePortalViewState();
@@ -859,6 +1012,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
     final l10n = AppLocalizations.of(context)!;
 
     return ListView(
+      controller: widget.scrollController,
       padding: const EdgeInsets.all(16),
       children: [
         Text(l10n.tabIntake, style: GoogleFonts.quicksand(fontSize: 28, fontWeight: FontWeight.bold)),
