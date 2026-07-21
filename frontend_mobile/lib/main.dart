@@ -835,6 +835,29 @@ class _IceFloeViewState extends State<IceFloeView> {
     final int qty = (item['quantity'] as int?) ?? 1;
     final String expiry = (item['expiration_date'] as String?) ?? '—';
     final String subtitle = 'Qty: $qty  •  Exp: $expiry';
+    final int? daysLeft = _daysUntilExpiry(expiry);
+
+    // Match pantry-health buckets (Week 8 analytics): safe ≥7, use soon 1–6, expired <1
+    final Color badgeColor;
+    final IconData badgeIcon;
+    final String badgeLabel;
+    if (daysLeft == null) {
+      badgeColor = AppColors.textVariant;
+      badgeIcon = Icons.help_outline;
+      badgeLabel = '—';
+    } else if (daysLeft < 1) {
+      badgeColor = const Color(0xFFE84040);
+      badgeIcon = Icons.error_outline;
+      badgeLabel = l10n.insightsExpired.toUpperCase();
+    } else if (daysLeft <= 6) {
+      badgeColor = AppColors.orange;
+      badgeIcon = Icons.warning_amber_rounded;
+      badgeLabel = l10n.lblExpiring;
+    } else {
+      badgeColor = const Color(0xFF3DB05B);
+      badgeIcon = Icons.check_circle_outline;
+      badgeLabel = l10n.insightsSafe.toUpperCase();
+    }
 
     return BentoCard(
       child: Row(
@@ -862,21 +885,38 @@ class _IceFloeViewState extends State<IceFloeView> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.orange,
+              color: badgeColor,
               border: Border.all(color: AppColors.outline, width: 2),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               children: [
-                const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 14),
+                Icon(badgeIcon, color: Colors.white, size: 14),
                 const SizedBox(width: 4),
-                Text(l10n.lblExpiring, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                Text(
+                  badgeLabel,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                ),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+/// Returns calendar days from today until [expiryStr] (YYYY-MM-DD), or null if unparsable.
+int? _daysUntilExpiry(String expiryStr) {
+  if (expiryStr == '—') return null;
+  try {
+    final parsed = DateTime.parse(expiryStr);
+    final today = DateTime.now();
+    final expDate = DateTime(parsed.year, parsed.month, parsed.day);
+    final todayDate = DateTime(today.year, today.month, today.day);
+    return expDate.difference(todayDate).inDays;
+  } catch (_) {
+    return null;
   }
 }
 

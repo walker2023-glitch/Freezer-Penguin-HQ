@@ -67,7 +67,7 @@ async def get_days_until_expiry_endpoint(
         user_id,
     )
     try:
-        rows = await svc.get_days_until_expiry(db)
+        rows = await svc.get_days_until_expiry(db, user_id)
         logger.info(
             "routers_analytics.get_days_until_expiry_endpoint: "
             "returned %s rows for user_id=%s",
@@ -109,7 +109,7 @@ async def get_ready_to_cook_recipes_endpoint(
         user_id,
     )
     try:
-        rows = await svc.get_ready_to_cook_recipes(db)
+        rows = await svc.get_ready_to_cook_recipes(db, user_id)
         logger.info(
             "routers_analytics.get_ready_to_cook_recipes_endpoint: "
             "returned %s rows for user_id=%s",
@@ -151,7 +151,7 @@ async def get_pantry_health_breakdown_endpoint(
         user_id,
     )
     try:
-        payload = await svc.get_pantry_health_breakdown(db)
+        payload = await svc.get_pantry_health_breakdown(db, user_id)
         logger.info(
             "routers_analytics.get_pantry_health_breakdown_endpoint: "
             "total=%s for user_id=%s",
@@ -193,7 +193,7 @@ async def get_missing_ingredients_planner_endpoint(
         user_id,
     )
     try:
-        rows = await svc.get_missing_ingredients_planner(db)
+        rows = await svc.get_missing_ingredients_planner(db, user_id)
         logger.info(
             "routers_analytics.get_missing_ingredients_planner_endpoint: "
             "returned %s rows for user_id=%s",
@@ -235,7 +235,7 @@ async def get_storage_zone_counts_endpoint(
         user_id,
     )
     try:
-        rows = await svc.get_storage_zone_counts(db)
+        rows = await svc.get_storage_zone_counts(db, user_id)
         logger.info(
             "routers_analytics.get_storage_zone_counts_endpoint: "
             "returned %s rows for user_id=%s",
@@ -277,7 +277,7 @@ async def get_high_priority_subquery_alert_endpoint(
         user_id,
     )
     try:
-        payload = await svc.get_high_priority_subquery_alert(db)
+        payload = await svc.get_high_priority_subquery_alert(db, user_id)
         logger.info(
             "routers_analytics.get_high_priority_subquery_alert_endpoint: "
             "alert_count=%s for user_id=%s",
@@ -319,7 +319,7 @@ async def get_culinary_greatest_hits_endpoint(
         user_id,
     )
     try:
-        rows = await svc.get_culinary_greatest_hits(db)
+        rows = await svc.get_culinary_greatest_hits(db, user_id)
         logger.info(
             "routers_analytics.get_culinary_greatest_hits_endpoint: "
             "returned %s rows for user_id=%s",
@@ -366,13 +366,13 @@ async def get_pantry_insights(
     )
 
     try:
-        alert = await svc.get_high_priority_subquery_alert(db)
-        health = await svc.get_pantry_health_breakdown(db)
-        expiry_fn = await svc.get_days_until_expiry(db)
-        ready = await svc.get_ready_to_cook_recipes(db)
-        zones = await svc.get_storage_zone_counts(db)
-        leaderboard = await svc.get_culinary_greatest_hits(db)
-        shopping = await svc.get_missing_ingredients_planner(db)
+        alert = await svc.get_high_priority_subquery_alert(db, user_id)
+        health = await svc.get_pantry_health_breakdown(db, user_id)
+        expiry_fn = await svc.get_days_until_expiry(db, user_id)
+        ready = await svc.get_ready_to_cook_recipes(db, user_id)
+        zones = await svc.get_storage_zone_counts(db, user_id)
+        leaderboard = await svc.get_culinary_greatest_hits(db, user_id)
+        shopping = await svc.get_missing_ingredients_planner(db, user_id)
     except Exception as exc:
         logger.error(
             "routers_analytics.get_pantry_insights: assembly failed — %s",
