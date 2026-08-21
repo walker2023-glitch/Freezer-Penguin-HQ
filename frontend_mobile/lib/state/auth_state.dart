@@ -16,6 +16,8 @@ class AuthState extends ChangeNotifier {
 
   // ── Authentication state ──────────────────────────────────────────────────
   bool _isAuthenticated = false;
+  bool _isOfflinePreview = false;
+  bool _isKitchenPreview = false;
   int? _userId;
   String? _email;
 
@@ -24,6 +26,8 @@ class AuthState extends ChangeNotifier {
 
   bool get isInitializing => _isInitializing;
   bool get isAuthenticated => _isAuthenticated;
+  bool get isOfflinePreview => _isOfflinePreview;
+  bool get isKitchenPreview => _isKitchenPreview;
   int? get userId => _userId;
   String? get email => _email;
 
@@ -41,14 +45,40 @@ class AuthState extends ChangeNotifier {
     required String token, // retained in signature for future JWT storage
   }) {
     _isAuthenticated = true;
+    _isOfflinePreview = false;
+    _isKitchenPreview = false;
     _userId = userId;
     _email = email;
+    notifyListeners();
+  }
+
+  /// Skip the API and open the current (classic) app with mock data.
+  /// Remove this path before a store build.
+  void enterOfflinePreview() {
+    _isAuthenticated = true;
+    _isOfflinePreview = true;
+    _isKitchenPreview = false;
+    _userId = 0;
+    _email = 'preview@offline';
+    notifyListeners();
+  }
+
+  /// Skip the API and open the Kitchen redesign prototype.
+  /// Does not replace the classic offline preview.
+  void enterKitchenPreview() {
+    _isAuthenticated = true;
+    _isOfflinePreview = true;
+    _isKitchenPreview = true;
+    _userId = 0;
+    _email = 'preview@kitchen';
     notifyListeners();
   }
 
   /// Clears all session data — called from the Settings sheet Sign Out button.
   void logout() {
     _isAuthenticated = false;
+    _isOfflinePreview = false;
+    _isKitchenPreview = false;
     _userId = null;
     _email = null;
     notifyListeners();

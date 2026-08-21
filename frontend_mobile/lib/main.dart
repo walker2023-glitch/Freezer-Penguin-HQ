@@ -8,13 +8,16 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import 'config.dart';                      // backendUrl + AppColors
+import 'offline/mock_data.dart';
 import 'screens/consume_screen.dart';          // Phase 5 — Consume / Feast / Rations tab
 import 'screens/loading_screen.dart';          // Phase 4 — animated splash/loading screen
 import 'screens/login_screen.dart';            // Feature 2.0 — LoginScreen
+import 'preview/kitchen_preview_shell.dart';   // Separate Kitchen redesign preview
 import 'screens/pantry_insights_screen.dart';  // Phase 6 — SQL analytics dashboard
 import 'state/app_settings.dart';        // Phase 5 — AppTheme/AppLocale/AppSettings
 import 'state/auth_state.dart';          // Feature 2.0 — AuthState ChangeNotifier
 import 'widgets/bento_card.dart';        // Phase 5 — extracted shared card widget
+import 'widgets/cold_storage_filter.dart';
 
 // AppTheme / AppLocale / AppLocaleExtension / AppSettings
 // ↳ moved to lib/state/app_settings.dart (Phase 5)
@@ -73,7 +76,9 @@ class FreezerPenguinApp extends StatelessWidget {
               child: auth.isInitializing
                   ? const LoadingScreen(key: ValueKey('loading'))
                   : auth.isAuthenticated
-                      ? const MainNavigationScreen(key: ValueKey('main'))
+                      ? (auth.isKitchenPreview
+                          ? const KitchenPreviewShell(key: ValueKey('kitchen'))
+                          : const MainNavigationScreen(key: ValueKey('main')))
                       : const LoginScreen(key: ValueKey('login')),
             ),
           ),
@@ -123,6 +128,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final l10n = AppLocalizations.of(context)!;
     // watch so nav re-renders immediately when theme changes
     final isArctic = context.watch<AppSettings>().isArctic;
+    final isOffline = context.watch<AuthState>().isOfflinePreview;
 
     // IndexedStack preserves widget state on tab switch (e.g. IceFloeView
     // retains its loaded inventory list; ConsumeScreen retains form state).
@@ -265,9 +271,42 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
       // IndexedStack keeps all tab widgets alive so state is preserved
-      body: IndexedStack(
-        index: _currentIndex,
-        children: views,
+      body: Column(
+        children: [
+          if (isOffline)
+            Material(
+              color: AppColors.orange,
+              child: SafeArea(
+                top: false,
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.wifi_off, color: Colors.white, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          l10n.offlinePreviewBanner,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          Expanded(
+            child: IndexedStack(
+              index: _currentIndex,
+              children: views,
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
@@ -677,14 +716,21 @@ class IceFloeView extends StatefulWidget {
 
 class _IceFloeViewState extends State<IceFloeView> {
   late Future<List<dynamic>> _inventoryFuture;
+  bool _started = false;
+  ColdStorageFilter _filter = const ColdStorageFilter();
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
     _inventoryFuture = _fetchInventory();
   }
 
   Future<List<dynamic>> _fetchInventory() async {
+    if (context.read<AuthState>().isOfflinePreview) {
+      return mockInventoryItems();
+    }
     final response = await http
         .get(Uri.parse('$backendUrl/inventory/1'))
         .timeout(const Duration(seconds: 10));
@@ -706,30 +752,28 @@ class _IceFloeViewState extends State<IceFloeView> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.tabColdStorage, style: GoogleFonts.quicksand(fontSize: 28, fontWeight: FontWeight.bold)),
-                Text(l10n.invSub, style: const TextStyle(color: AppColors.textVariant, fontSize: 16)),
-              ],
-            ),
-            GestureDetector(
-              onTap: () => setState(() => _inventoryFuture = _fetchInventory()),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  border: Border.all(color: AppColors.outline, width: 2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.filter_list, color: Colors.white, size: 18),
-                    const SizedBox(width: 4),
-                    Text(l10n.btnFilter, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ],
-                ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.tabColdStorage, style: GoogleFonts.quicksand(fontSize: 28, fontWeight: FontWeight.bold)),
+                  Text(l10n.invSub, style: const TextStyle(color: AppColors.textVariant, fontSize: 16)),
+                ],
               ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: 'Refresh',
+                  onPressed: () => setState(() => _inventoryFuture = _fetchInventory()),
+                  icon: const Icon(Icons.refresh, color: AppColors.outline),
+                ),
+                ColdStorageFilterButton(
+                  filter: _filter,
+                  onChanged: (next) => setState(() => _filter = next),
+                ),
+              ],
             ),
           ],
         ),
@@ -755,7 +799,24 @@ class _IceFloeViewState extends State<IceFloeView> {
                 ),
               );
             }
-            final items = snapshot.data ?? [];
+            final all = snapshot.data ?? [];
+            final items = all.where((raw) {
+              return itemMatchesColdFilter(
+                Map<String, dynamic>.from(raw as Map),
+                _filter,
+              );
+            }).toList();
+            if (all.isNotEmpty && items.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.only(top: 48),
+                child: Center(
+                  child: Text(
+                    'Nothing matches this filter.',
+                    style: TextStyle(color: AppColors.textVariant, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              );
+            }
             if (items.isEmpty) {
               return Padding(
                 padding: const EdgeInsets.only(top: 48),
@@ -971,6 +1032,10 @@ class _IntakePortalViewState extends State<IntakePortalView> {
       _showSnackBar('Please enter a UPC barcode number.', isError: true);
       return;
     }
+    if (context.read<AuthState>().isOfflinePreview) {
+      _showSnackBar('Offline preview — barcode save will work when the backend is connected.');
+      return;
+    }
     setState(() => _isLoading = true);
     try {
       final response = await http
@@ -995,6 +1060,10 @@ class _IntakePortalViewState extends State<IntakePortalView> {
   }
 
   Future<void> _pickAndSubmitVision() async {
+    if (context.read<AuthState>().isOfflinePreview) {
+      _showSnackBar('Offline preview — vision scan will work when the backend is connected.');
+      return;
+    }
     final XFile? image = await _imagePicker.pickImage(source: ImageSource.gallery);
     if (image == null) return;
 
@@ -1031,6 +1100,10 @@ class _IntakePortalViewState extends State<IntakePortalView> {
   }
 
   void _submitManual() {
+    if (context.read<AuthState>().isOfflinePreview) {
+      _showSnackBar('Offline preview — manual add will save when the backend is connected.');
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Captured Entry: ${_nameController.text}'),

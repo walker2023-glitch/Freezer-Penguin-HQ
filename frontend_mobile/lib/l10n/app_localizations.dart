@@ -658,6 +658,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buy'**
   String get insightsBuyBtn;
+
+  /// Login screen link that opens the app with mock data when the backend is down.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview app (offline)'**
+  String get offlinePreviewButton;
+
+  /// Banner shown while browsing the app without a live API.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline preview — mock data. Sign out when the backend is back.'**
+  String get offlinePreviewBanner;
+
+  /// Login link that opens the separate Kitchen / recipes / chat prototype.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview Kitchen redesign'**
+  String get kitchenPreviewButton;
 }
 
 class _AppLocalizationsDelegate

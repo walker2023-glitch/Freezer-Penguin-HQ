@@ -183,7 +183,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: Border.all(color: AppColors.outline, width: 2),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Column(
+                  child: AutofillGroup(
+                    child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
@@ -211,6 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _emailController,
                         hint: 'penguin@example.com',
                         keyboardType: TextInputType.emailAddress,
+                        autofillHints: const [AutofillHints.email],
                       ),
                       const SizedBox(height: 16),
 
@@ -225,8 +227,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 8),
                       _buildField(
                         controller: _passwordController,
-                        hint: '••••••••',
+                        hint: 'Enter password',
                         obscureText: _obscurePassword,
+                        keyboardType: TextInputType.visiblePassword,
+                        autofillHints: const [AutofillHints.password],
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -283,9 +287,33 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                       ),
                     ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
+
+                TextButton(
+                  onPressed: () =>
+                      context.read<AuthState>().enterOfflinePreview(),
+                  child: Text(
+                    l10n.offlinePreviewButton,
+                    style: GoogleFonts.quicksand(
+                      color: AppColors.textVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () =>
+                      context.read<AuthState>().enterKitchenPreview(),
+                  child: Text(
+                    l10n.kitchenPreviewButton,
+                    style: GoogleFonts.quicksand(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
 
                 // ── Toggle login ↔ register ───────────────────────────────
                 GestureDetector(
@@ -319,12 +347,21 @@ class _LoginScreenState extends State<LoginScreen> {
     required String hint,
     bool obscureText = false,
     TextInputType? keyboardType,
+    Iterable<String>? autofillHints,
     Widget? suffixIcon,
   }) {
     return TextField(
       controller: controller,
       obscureText: obscureText,
-      keyboardType: keyboardType,
+      // Flutter Web: obscureText + default keyboard often swallows keystrokes.
+      keyboardType: keyboardType ?? TextInputType.text,
+      autocorrect: !obscureText,
+      enableSuggestions: !obscureText,
+      enableInteractiveSelection: true,
+      autofillHints: autofillHints,
+      textInputAction:
+          obscureText ? TextInputAction.done : TextInputAction.next,
+      onSubmitted: obscureText ? (_) => _submit() : null,
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: AppColors.textVariant),

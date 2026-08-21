@@ -100,5 +100,10 @@
   "insightsTopPicks": "最受歡迎",
   "insightsShoppingList": "購物清單",
   "insightsShoppingSub": "您已儲存食譜中所缺少的食材。",
-  "insightsBuyBtn": "購買"
+  "insightsBuyBtn": "購買",
+
+  "offlinePreviewButton": "離線預覽應用程式",
+  "offlinePreviewBanner": "離線預覽 — 示範資料。伺服器恢復後請登出。",
+
+  "kitchenPreviewButton": "預覽廚房新設計"
 }

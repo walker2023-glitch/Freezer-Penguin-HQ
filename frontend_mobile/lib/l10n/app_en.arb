@@ -278,5 +278,14 @@
   "@insightsShoppingSub": { "description": "Subtitle under the Shopping List section header." },
 
   "insightsBuyBtn": "Buy",
-  "@insightsBuyBtn": { "description": "Action pill on each shopping list row." }
+  "@insightsBuyBtn": { "description": "Action pill on each shopping list row." },
+
+  "offlinePreviewButton": "Preview app (offline)",
+  "@offlinePreviewButton": { "description": "Login screen link that opens the app with mock data when the backend is down." },
+
+  "offlinePreviewBanner": "Offline preview — mock data. Sign out when the backend is back.",
+  "@offlinePreviewBanner": { "description": "Banner shown while browsing the app without a live API." },
+
+  "kitchenPreviewButton": "Preview Kitchen redesign",
+  "@kitchenPreviewButton": { "description": "Login link that opens the separate Kitchen / recipes / chat prototype." }
 }

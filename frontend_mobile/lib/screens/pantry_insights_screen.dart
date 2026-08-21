@@ -19,9 +19,12 @@ import 'dart:math' show pi, min;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 import '../config.dart';
 import '../l10n/app_localizations.dart';
+import '../offline/mock_data.dart';
+import '../state/auth_state.dart';
 import '../widgets/bento_card.dart';
 
 // ── Analytics-specific color constants ───────────────────────────────────────
@@ -39,14 +42,20 @@ class PantryInsightsScreen extends StatefulWidget {
 class _PantryInsightsScreenState extends State<PantryInsightsScreen> {
   late Future<Map<String, dynamic>> _insightsFuture;
   late AppLocalizations _l10n;
+  bool _started = false;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
     _insightsFuture = _loadInsights();
   }
 
   Future<Map<String, dynamic>> _loadInsights() async {
+    if (context.read<AuthState>().isOfflinePreview) {
+      return mockPantryInsights();
+    }
     final response = await http
         .get(Uri.parse('$backendUrl/analytics/pantry-insights?user_id=1'))
         .timeout(const Duration(seconds: 12));

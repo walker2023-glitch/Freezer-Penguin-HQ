@@ -291,6 +291,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insightsBuyBtn => 'Buy';
+
+  @override
+  String get offlinePreviewButton => 'Preview app (offline)';
+
+  @override
+  String get offlinePreviewBanner =>
+      'Offline preview — mock data. Sign out when the backend is back.';
+
+  @override
+  String get kitchenPreviewButton => 'Preview Kitchen redesign';
 }
 
 /// The translations for Chinese, as used in Hong Kong (`zh_HK`).
@@ -575,4 +585,13 @@ class AppLocalizationsZhHk extends AppLocalizationsZh {
 
   @override
   String get insightsBuyBtn => '購買';
+
+  @override
+  String get offlinePreviewButton => '離線預覽應用程式';
+
+  @override
+  String get offlinePreviewBanner => '離線預覽 — 示範資料。伺服器恢復後請登出。';
+
+  @override
+  String get kitchenPreviewButton => '預覽廚房新設計';
 }

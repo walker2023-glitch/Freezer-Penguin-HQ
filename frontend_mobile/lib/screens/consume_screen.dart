@@ -19,7 +19,9 @@ import 'package:provider/provider.dart';
 
 import '../config.dart';
 import '../l10n/app_localizations.dart';
+import '../offline/mock_data.dart';
 import '../state/app_settings.dart';
+import '../state/auth_state.dart';
 import '../widgets/bento_card.dart';
 
 class ConsumeScreen extends StatefulWidget {
@@ -32,6 +34,7 @@ class ConsumeScreen extends StatefulWidget {
 class _ConsumeScreenState extends State<ConsumeScreen> {
   // ── Section 1: Inventory Subtraction ─────────────────────────────────────
   late Future<List<dynamic>> _inventoryFuture;
+  bool _started = false;
   Map<String, dynamic>? _selectedItem;
   bool _isMarkingEaten = false;
 
@@ -48,8 +51,10 @@ class _ConsumeScreenState extends State<ConsumeScreen> {
   bool _isUploadingPhoto = false;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
     _inventoryFuture = _fetchInventory();
   }
 
@@ -65,6 +70,9 @@ class _ConsumeScreenState extends State<ConsumeScreen> {
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   Future<List<dynamic>> _fetchInventory() async {
+    if (context.read<AuthState>().isOfflinePreview) {
+      return mockInventoryItems();
+    }
     final response = await http
         .get(Uri.parse('$backendUrl/inventory/1'))
         .timeout(const Duration(seconds: 10));

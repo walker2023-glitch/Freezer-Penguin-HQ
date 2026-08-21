@@ -294,4 +294,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get insightsBuyBtn => 'Comprar';
+
+  @override
+  String get offlinePreviewButton => 'Ver la app (sin conexión)';
+
+  @override
+  String get offlinePreviewBanner =>
+      'Vista previa sin conexión — datos de ejemplo. Cierra sesión cuando el servidor vuelva.';
+
+  @override
+  String get kitchenPreviewButton => 'Ver rediseño Kitchen';
 }

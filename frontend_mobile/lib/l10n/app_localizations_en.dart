@@ -291,4 +291,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insightsBuyBtn => 'Buy';
+
+  @override
+  String get offlinePreviewButton => 'Preview app (offline)';
+
+  @override
+  String get offlinePreviewBanner =>
+      'Offline preview — mock data. Sign out when the backend is back.';
+
+  @override
+  String get kitchenPreviewButton => 'Preview Kitchen redesign';
 }

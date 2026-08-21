@@ -100,5 +100,10 @@
   "insightsTopPicks": "Más Populares",
   "insightsShoppingList": "Lista de Compras",
   "insightsShoppingSub": "Ingredientes faltantes para tus recetas guardadas.",
-  "insightsBuyBtn": "Comprar"
+  "insightsBuyBtn": "Comprar",
+
+  "offlinePreviewButton": "Ver la app (sin conexión)",
+  "offlinePreviewBanner": "Vista previa sin conexión — datos de ejemplo. Cierra sesión cuando el servidor vuelva.",
+
+  "kitchenPreviewButton": "Ver rediseño Kitchen"
 }
