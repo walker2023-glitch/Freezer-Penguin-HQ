@@ -1,6 +1,7 @@
 from sqlalchemy import (
     BigInteger, Boolean, Column, Date, DateTime,
-    ForeignKey, Integer, Numeric, String, Text,\n    UniqueConstraint,
+    ForeignKey, Integer, Numeric, String, Text,
+    UniqueConstraint,
 )
 from app.database import Base
 

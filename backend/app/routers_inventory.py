@@ -30,8 +30,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.auth_tokens import get_current_user
-from app.database import get_db\nfrom app.household_access import get_current_household
-from app.models import (\n    DBBarcodeMaster,\n    DBCategory,\n    DBHousehold,\n    DBInventoryItem,\n    DBUser,\n)
+from app.database import get_db
+from app.household_access import get_current_household
+from app.models import (
+    DBBarcodeMaster,
+    DBCategory,
+    DBHousehold,
+    DBInventoryItem,
+    DBUser,
+)
 from app.schemas import BarcodeIngestionResponse, InventoryItemResponse
 from app.services_open_food_facts import fetch_product_from_off
 
