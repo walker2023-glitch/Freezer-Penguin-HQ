@@ -12,7 +12,7 @@ GeminiRankedItem          — internal contract for validating Gemini JSON outpu
 """
 
 from typing import Optional
-from datetime import date, datetime
+from datetime import date
 
 from pydantic import BaseModel, Field
 

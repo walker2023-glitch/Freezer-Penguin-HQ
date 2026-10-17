@@ -14,11 +14,9 @@ import asyncio
 import json
 import logging
 import traceback
-from typing import Optional
-
 from google import genai
 from google.genai import types
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import ValidationError
 
 from app.schemas_recipes import GeminiRankedItem
 
