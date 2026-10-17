@@ -5,7 +5,7 @@ from fastapi import HTTPException
 
 os.environ.setdefault("AUTH_TOKEN_SECRET", "test-only-auth-secret")
 
-from app.auth_tokens import create_access_token, _read_user_id
+from app.auth_tokens import create_access_token, _read_user_id  # noqa: E402
 
 
 def test_signed_token_round_trips_user_id():
