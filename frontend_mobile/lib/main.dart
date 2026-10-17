@@ -1088,6 +1088,9 @@ class _IntakePortalViewState extends State<IntakePortalView> {
   final TextEditingController _qtyController  = TextEditingController(text: '1');
   final TextEditingController _zoneController = TextEditingController();
   final TextEditingController _upcController  = TextEditingController();
+  final TextEditingController _expiryController = TextEditingController(
+    text: DateTime.now().add(const Duration(days: 30)).toIso8601String().split('T').first,
+  );
 
   final ImagePicker _imagePicker = ImagePicker();
   String? _pickedImageName;
@@ -1098,6 +1101,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
     _qtyController.dispose();
     _zoneController.dispose();
     _upcController.dispose();
+    _expiryController.dispose();
     super.dispose();
   }
 
@@ -1184,17 +1188,46 @@ class _IntakePortalViewState extends State<IntakePortalView> {
     }
   }
 
-  void _submitManual() {
+  Future<void> _submitManual() async {
+    final name = _nameController.text.trim();
+    final quantity = int.tryParse(_qtyController.text.trim());
+    final expiry = _expiryController.text.trim();
+    if (name.isEmpty || quantity == null || quantity < 1 || expiry.isEmpty) {
+      _showSnackBar('Enter a name, quantity, and expiration date.', isError: true);
+      return;
+    }
     if (context.read<AuthState>().isOfflinePreview) {
       _showSnackBar('Offline preview — manual add will save when the backend is connected.');
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Captured Entry: ${_nameController.text}'),
-        backgroundColor: AppColors.primary,
-      ),
-    );
+    setState(() => _isLoading = true);
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$backendUrl/inventory/'),
+            headers: context.read<AuthState>().authHeaders(json: true),
+            body: jsonEncode({
+              'product_name': name,
+              'quantity': quantity,
+              'expiration_date': expiry,
+              'location_id': 1,
+              'unit_id': 1,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+      if (response.statusCode != 201) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(body['detail']?.toString() ?? 'Server returned ${response.statusCode}');
+      }
+      _showSnackBar('Added: $name');
+      _nameController.clear();
+      _qtyController.text = '1';
+      _zoneController.clear();
+    } catch (error) {
+      _showSnackBar('Could not add item: $error', isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _handleSubmit() async {
@@ -1334,6 +1367,10 @@ class _IntakePortalViewState extends State<IntakePortalView> {
       Text(l10n.formName, style: const TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
       _buildTextField(l10n.hintName, controller: _nameController),
+      const SizedBox(height: 16),
+      Text('Expiration date (YYYY-MM-DD)', style: const TextStyle(fontWeight: FontWeight.bold)),
+      const SizedBox(height: 8),
+      _buildTextField('e.g. 2026-12-31', controller: _expiryController),
       const SizedBox(height: 16),
       Row(
         children: [
