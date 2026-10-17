@@ -32,6 +32,7 @@ jobs:
         env:
           GEMINI_API_KEY: "test-ci-placeholder"
           DATABASE_URL: "sqlite:///./test_ci.db"
+          AUTH_TOKEN_SECRET: "test-only-auth-secret"
         run: |
           pip install pytest pydantic
           python -m pytest backend/app/tests/ --tb=short --verbose

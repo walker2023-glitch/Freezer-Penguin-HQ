@@ -39,8 +39,9 @@ from typing import Optional
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
+from app.auth_tokens import get_current_user
 from app.database import get_db
-from app.models import DBAIAuditLog, DBInventoryItem
+from app.models import DBAIAuditLog, DBInventoryItem, DBUser
 from app.schemas import LeftoverScanResponse
 from app.services_gemini_vision import (
     GEMINI_SYSTEM_PROMPT,
@@ -85,7 +86,7 @@ async def scan_leftover(
             "Maximum size: 10 MB."
         ),
     ),
-    user_id: int = Query(..., description="FK to Users.user_id — the owning account"),
+    current_user: DBUser = Depends(get_current_user),
     location_id: int = Query(..., description="FK to storage_locations.location_id"),
     unit_id: int = Query(..., description="FK to Units.unit_id"),
     db: Session = Depends(get_db),
@@ -97,9 +98,9 @@ async def scan_leftover(
     content_type: Optional[str] = image.content_type
     if not content_type or content_type not in _ACCEPTED_MIME_TYPES:
         logger.warning(
-            "Vision ingestion rejected — unsupported MIME type=%r user_id=%s",
+            "Vision ingestion rejected — unsupported MIME type=%r current_user.user_id=%s",
             content_type,
-            user_id,
+            current_user.user_id,
         )
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
@@ -116,9 +117,9 @@ async def scan_leftover(
     payload_size: int = len(image_bytes)
 
     logger.info(
-        "Vision ingestion request received — user_id=%s location_id=%s unit_id=%s "
+        "Vision ingestion request received — current_user.user_id=%s location_id=%s unit_id=%s "
         "mime_type=%s payload_bytes=%s",
-        user_id,
+        current_user.user_id,
         location_id,
         unit_id,
         content_type,
@@ -127,9 +128,9 @@ async def scan_leftover(
 
     if payload_size > _MAX_PAYLOAD_BYTES:
         logger.warning(
-            "Vision ingestion rejected — payload_bytes=%s exceeds 10 MB ceiling user_id=%s",
+            "Vision ingestion rejected — payload_bytes=%s exceeds 10 MB ceiling current_user.user_id=%s",
             payload_size,
-            user_id,
+            current_user.user_id,
         )
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
@@ -197,7 +198,7 @@ async def scan_leftover(
     # NEVER carry a barcode reference.
     # ------------------------------------------------------------------
     new_item = DBInventoryItem(
-        user_id=user_id,
+        user_id=current_user.user_id,
         quantity=1,
         expiration_date=expiration_date,
         UPC=None,           # GR-1: hardcoded NULL — image_scan items have no barcode
@@ -210,9 +211,9 @@ async def scan_leftover(
         db.flush()  # Assigns item_id without committing; keeps both rows in same transaction
 
         logger.info(
-            "inventory_items row staged (pending commit) — item_id=%s UPC=None user_id=%s",
+            "inventory_items row staged (pending commit) — item_id=%s UPC=None current_user.user_id=%s",
             new_item.item_id,
-            user_id,
+            current_user.user_id,
         )
 
         new_audit_log = DBAIAuditLog(
@@ -243,9 +244,9 @@ async def scan_leftover(
     except Exception as exc:
         db.rollback()
         logger.error(
-            "Atomic DB write failed during vision ingestion for user_id=%s — "
+            "Atomic DB write failed during vision ingestion for current_user.user_id=%s — "
             "both inventory_items and ai_audit_logs rolled back. raw error: %s",
-            user_id,
+            current_user.user_id,
             str(exc),
         )
         raise HTTPException(

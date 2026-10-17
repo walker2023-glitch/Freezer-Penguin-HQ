@@ -29,8 +29,9 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.auth_tokens import get_current_user
 from app.database import get_db
-from app.models import DBBarcodeMaster, DBCategory, DBInventoryItem
+from app.models import DBBarcodeMaster, DBCategory, DBInventoryItem, DBUser
 from app.schemas import BarcodeIngestionResponse, InventoryItemResponse
 from app.services_open_food_facts import fetch_product_from_off
 
@@ -56,8 +57,8 @@ _DEFAULT_CATEGORY_ID = 8  # "General" — catch-all per seeded categories table
 )
 async def ingest_barcode_item(
     upc: str,
-    user_id: int = Query(..., description="FK to Users.user_id — the owning account"),
     location_id: int = Query(..., description="FK to storage_locations.location_id"),
+    current_user: DBUser = Depends(get_current_user),
     unit_id: int = Query(..., description="FK to Units.unit_id"),
     expiration_date: Optional[date] = Query(
         None,
@@ -71,7 +72,7 @@ async def ingest_barcode_item(
     logger.info(
         "Barcode ingestion request received — UPC=%s user_id=%s location_id=%s unit_id=%s",
         upc,
-        user_id,
+        current_user.user_id,
         location_id,
         unit_id,
     )
@@ -223,7 +224,7 @@ async def ingest_barcode_item(
     existing_item: Optional[DBInventoryItem] = (
         db.query(DBInventoryItem)
         .filter(
-            DBInventoryItem.user_id == user_id,
+            DBInventoryItem.user_id == current_user.user_id,
             DBInventoryItem.UPC == upc,
             DBInventoryItem.location_id == location_id,
         )
@@ -275,7 +276,7 @@ async def ingest_barcode_item(
     # New item path — first scan of this UPC at this location for this user
     # ------------------------------------------------------------------
     new_item = DBInventoryItem(
-        user_id=user_id,
+        user_id=current_user.user_id,
         quantity=1,
         expiration_date=expiration_date,
         UPC=upc,
@@ -290,7 +291,7 @@ async def ingest_barcode_item(
             "inventory_items INSERT committed — item_id=%s UPC=%s user_id=%s location_id=%s",
             new_item.item_id,
             upc,
-            user_id,
+            current_user.user_id,
             location_id,
         )
     except Exception as exc:
@@ -318,7 +319,7 @@ async def ingest_barcode_item(
 
 
 @router.get(
-    "/{user_id}",
+    "/",
     response_model=list[InventoryItemResponse],
     status_code=200,
     summary="Fetch all inventory items for a user, ordered by soonest expiry",
@@ -332,7 +333,7 @@ async def ingest_barcode_item(
     },
 )
 def get_user_inventory(
-    user_id: int,
+    current_user: DBUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[InventoryItemResponse]:
     """
@@ -345,19 +346,19 @@ def get_user_inventory(
     Result set is ordered by expiration_date ASC so the most urgent items
     appear first in the Flutter Ice Floe view.
     """
-    logger.info("Inventory fetch request — user_id=%s", user_id)
+    logger.info("Inventory fetch request — user_id=%s", current_user.user_id)
 
     rows = (
         db.query(DBInventoryItem, DBBarcodeMaster)
         .outerjoin(DBBarcodeMaster, DBInventoryItem.UPC == DBBarcodeMaster.UPC)
-        .filter(DBInventoryItem.user_id == user_id)
+        .filter(DBInventoryItem.user_id == current_user.user_id)
         .order_by(DBInventoryItem.expiration_date.asc())
         .all()
     )
 
     logger.info(
         "Inventory fetch complete — user_id=%s rows_returned=%s",
-        user_id,
+        current_user.user_id,
         len(rows),
     )
 

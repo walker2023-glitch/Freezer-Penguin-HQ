@@ -55,6 +55,12 @@ if not os.getenv("GEMINI_API_KEY"):
         "Add it to backend/.env before starting the server."
     )
 
+if not os.getenv("AUTH_TOKEN_SECRET"):
+    raise RuntimeError(
+        "AUTH_TOKEN_SECRET environment variable is missing. "
+        "Add a long random value to backend/.env before starting the server."
+    )
+
 # ---------------------------------------------------------------------------
 # SQLAlchemy metadata sync
 # create_all is additive — tables already present in MySQL are skipped.

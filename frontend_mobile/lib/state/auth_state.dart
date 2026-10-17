@@ -20,9 +20,21 @@ class AuthState extends ChangeNotifier {
   bool _isKitchenPreview = false;
   int? _userId;
   String? _email;
+  String? _token;
 
-  // _token is intentionally omitted at skeleton stage.
-  // TODO: add String? _token and attach to Authorization header in Phase 5+.
+  String? get token => _token;
+
+  /// Headers for protected API calls. Preview mode never calls this helper.
+  Map<String, String> authHeaders({bool json = false}) {
+    final value = _token;
+    if (value == null || value.isEmpty) {
+      throw StateError('No authenticated API session is available.');
+    }
+    return {
+      'Authorization': 'Bearer $value',
+      if (json) 'Content-Type': 'application/json',
+    };
+  }
 
   bool get isInitializing => _isInitializing;
   bool get isAuthenticated => _isAuthenticated;
@@ -49,6 +61,7 @@ class AuthState extends ChangeNotifier {
     _isKitchenPreview = false;
     _userId = userId;
     _email = email;
+    _token = token;
     notifyListeners();
   }
 
@@ -60,6 +73,7 @@ class AuthState extends ChangeNotifier {
     _isKitchenPreview = false;
     _userId = 0;
     _email = 'preview@offline';
+    _token = null;
     notifyListeners();
   }
 
@@ -71,6 +85,7 @@ class AuthState extends ChangeNotifier {
     _isKitchenPreview = true;
     _userId = 0;
     _email = 'preview@kitchen';
+    _token = null;
     notifyListeners();
   }
 
@@ -81,6 +96,7 @@ class AuthState extends ChangeNotifier {
     _isKitchenPreview = false;
     _userId = null;
     _email = null;
+    _token = null;
     notifyListeners();
   }
 }
