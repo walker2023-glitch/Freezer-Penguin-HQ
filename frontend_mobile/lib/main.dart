@@ -732,7 +732,7 @@ class _IceFloeViewState extends State<IceFloeView> {
       return mockInventoryItems();
     }
     final response = await http
-        .get(Uri.parse('$backendUrl/inventory/1'))
+        .get(Uri.parse('$backendUrl/inventory'), headers: context.read<AuthState>().authHeaders())
         .timeout(const Duration(seconds: 10));
 
     if (response.statusCode == 200) {
@@ -1039,7 +1039,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
     setState(() => _isLoading = true);
     try {
       final response = await http
-          .post(Uri.parse('$backendUrl/inventory/barcode/$upc?user_id=1&location_id=1&unit_id=1'))
+          .post(Uri.parse('$backendUrl/inventory/barcode/$upc?location_id=1&unit_id=1'), headers: context.read<AuthState>().authHeaders())
           .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 201) {

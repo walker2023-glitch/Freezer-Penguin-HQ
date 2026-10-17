@@ -12,7 +12,10 @@ import 'package:flutter/material.dart';
 
 /// HTTP base URL for the Freezer Penguin FastAPI backend.
 /// HTTP only — avoids local self-signed TLS certificate validation blocks.
-const String backendUrl = 'http://127.0.0.1:8000/api/v1';
+const String backendUrl = String.fromEnvironment(
+  'FREEZER_PENGUIN_API_URL',
+  defaultValue: 'http://127.0.0.1:8000/api/v1',
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DESIGN TOKENS

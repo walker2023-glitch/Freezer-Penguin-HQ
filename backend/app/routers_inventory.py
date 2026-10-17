@@ -56,8 +56,8 @@ _DEFAULT_CATEGORY_ID = 8  # "General" — catch-all per seeded categories table
 )
 async def ingest_barcode_item(
     upc: str,
-    user_id: int = Query(..., description="FK to Users.user_id — the owning account"),
     location_id: int = Query(..., description="FK to storage_locations.location_id"),
+    current_user: DBUser = Depends(get_current_user),
     unit_id: int = Query(..., description="FK to Units.unit_id"),
     expiration_date: Optional[date] = Query(
         None,
@@ -223,7 +223,7 @@ async def ingest_barcode_item(
     existing_item: Optional[DBInventoryItem] = (
         db.query(DBInventoryItem)
         .filter(
-            DBInventoryItem.user_id == user_id,
+            DBInventoryItem.user_id == current_user.user_id,
             DBInventoryItem.UPC == upc,
             DBInventoryItem.location_id == location_id,
         )
@@ -275,7 +275,7 @@ async def ingest_barcode_item(
     # New item path — first scan of this UPC at this location for this user
     # ------------------------------------------------------------------
     new_item = DBInventoryItem(
-        user_id=user_id,
+        user_id=current_user.user_id,
         quantity=1,
         expiration_date=expiration_date,
         UPC=upc,
@@ -318,7 +318,7 @@ async def ingest_barcode_item(
 
 
 @router.get(
-    "/{user_id}",
+    "/",
     response_model=list[InventoryItemResponse],
     status_code=200,
     summary="Fetch all inventory items for a user, ordered by soonest expiry",
@@ -345,12 +345,12 @@ def get_user_inventory(
     Result set is ordered by expiration_date ASC so the most urgent items
     appear first in the Flutter Ice Floe view.
     """
-    logger.info("Inventory fetch request — user_id=%s", user_id)
+    logger.info("Inventory fetch request — user_id=%s", current_user.user_id)
 
     rows = (
         db.query(DBInventoryItem, DBBarcodeMaster)
         .outerjoin(DBBarcodeMaster, DBInventoryItem.UPC == DBBarcodeMaster.UPC)
-        .filter(DBInventoryItem.user_id == user_id)
+        .filter(DBInventoryItem.user_id == current_user.user_id)
         .order_by(DBInventoryItem.expiration_date.asc())
         .all()
     )
