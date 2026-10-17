@@ -174,6 +174,7 @@ class DBInventoryItem(Base):
     item_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("Users.user_id"), nullable=False)
     quantity = Column(Integer, nullable=True, default=1)
+    product_name = Column(String(255), nullable=True)
     expiration_date = Column(Date, nullable=False, index=True)
     UPC = Column(
         String(15),
@@ -191,6 +192,12 @@ class DBInventoryItem(Base):
         Boolean,
         nullable=True,   # nullable=True is non-breaking for rows pre-dating this column
         default=False,
+        index=True,
+    )
+    household_id = Column(
+        Integer,
+        ForeignKey("households.household_id", ondelete="SET NULL"),
+        nullable=True,
         index=True,
     )
 
