@@ -198,7 +198,7 @@ async def scan_leftover(
     # NEVER carry a barcode reference.
     # ------------------------------------------------------------------
     new_item = DBInventoryItem(
-        current_user.user_id=current_user.user_id,
+        user_id=current_user.user_id,
         quantity=1,
         expiration_date=expiration_date,
         UPC=None,           # GR-1: hardcoded NULL — image_scan items have no barcode
