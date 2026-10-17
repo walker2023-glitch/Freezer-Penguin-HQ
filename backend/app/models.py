@@ -1,6 +1,6 @@
 from sqlalchemy import (
     BigInteger, Boolean, Column, Date, DateTime,
-    ForeignKey, Integer, Numeric, String, Text,
+    ForeignKey, Integer, Numeric, String, Text,\n    UniqueConstraint,
 )
 from app.database import Base
 
@@ -60,6 +60,77 @@ class DBUser(Base):
     current_item_count = Column(Integer, nullable=True)
     total_food_wasted = Column(Integer, nullable=True)
     total_food_wasted_cost = Column(Numeric(10, 2), nullable=True)
+
+
+
+class DBHousehold(Base):
+    """A private apartment or household inventory boundary."""
+
+    __tablename__ = "households"
+
+    household_id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(120), nullable=False)
+    created_by = Column(Integer, ForeignKey("Users.user_id"), nullable=False, index=True)
+    created_at = Column(DateTime, nullable=False)
+
+
+class DBHouseholdMember(Base):
+    """Membership and role records used for household authorization."""
+
+    __tablename__ = "household_members"
+    __table_args__ = (
+        UniqueConstraint(
+            "household_id",
+            "user_id",
+            name="uq_household_members_household_user",
+        ),
+    )
+
+    membership_id = Column(Integer, primary_key=True, autoincrement=True)
+    household_id = Column(
+        Integer,
+        ForeignKey("households.household_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user_id = Column(
+        Integer,
+        ForeignKey("Users.user_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    role = Column(String(20), nullable=False, default="member")
+    joined_at = Column(DateTime, nullable=False)
+    revoked_at = Column(DateTime, nullable=True)
+
+
+class DBHouseholdInvite(Base):
+    """Single-use, expiring invite identified by a hashed random code."""
+
+    __tablename__ = "household_invites"
+
+    invite_id = Column(Integer, primary_key=True, autoincrement=True)
+    household_id = Column(
+        Integer,
+        ForeignKey("households.household_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    created_by = Column(
+        Integer,
+        ForeignKey("Users.user_id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    invite_code_hash = Column(String(64), nullable=False, unique=True, index=True)
+    expires_at = Column(DateTime, nullable=False, index=True)
+    accepted_at = Column(DateTime, nullable=True)
+    accepted_by = Column(
+        Integer,
+        ForeignKey("Users.user_id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    created_at = Column(DateTime, nullable=False)
 
 
 class DBStorageLocation(Base):
