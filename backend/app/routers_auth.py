@@ -21,13 +21,13 @@ SKILL.md compliance:
 """
 
 import logging
-import secrets
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
+from app.auth_tokens import create_access_token
 from app.database import get_db
 from app.models import DBUser
 from app.schemas_auth import (
@@ -135,7 +135,7 @@ def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    token = secrets.token_urlsafe(32)
+    token = create_access_token(user.user_id)
     logger.info("Login successful — user_id=%s", user.user_id)
 
     return AuthResponse(

@@ -7,6 +7,7 @@ logged or returned.
 """
 
 import base64
+import binascii
 import hashlib
 import hmac
 import json
@@ -68,7 +69,7 @@ def _read_user_id(token: str) -> int:
         if user_id <= 0:
             raise ValueError("invalid subject")
         return user_id
-    except (ValueError, KeyError, TypeError, json.JSONDecodeError):
+    except (binascii.Error, ValueError, KeyError, TypeError, json.JSONDecodeError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired authentication token.",
