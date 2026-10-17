@@ -67,14 +67,15 @@ def create_household(
         created_by=current_user.user_id,
         created_at=utc_now(),
     )
-    membership = DBHouseholdMember(
-        household=household,
-        user_id=current_user.user_id,
-        role="owner",
-        joined_at=utc_now(),
-    )
     try:
         db.add(household)
+        db.flush()
+        membership = DBHouseholdMember(
+            household_id=household.household_id,
+            user_id=current_user.user_id,
+            role="owner",
+            joined_at=utc_now(),
+        )
         db.add(membership)
         db.commit()
         db.refresh(household)
@@ -111,7 +112,10 @@ def create_invite(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Household not found.")
     membership = require_active_membership(household_id, current_user.user_id, db)
     if membership.role not in {"owner", "admin"}:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only household owners or admins can invite members.")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only household owners or admins can invite members.",
+        )
     code = secrets.token_urlsafe(16)
     now = utc_now()
     invite = DBHouseholdInvite(
@@ -126,7 +130,10 @@ def create_invite(
         db.commit()
     except Exception as exc:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not create invite: {exc}") from exc
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Could not create invite: {exc}",
+        ) from exc
     return HouseholdInviteResponse(
         invite_code=code,
         household_id=household_id,
@@ -180,7 +187,10 @@ def accept_invite(
         db.refresh(membership)
     except Exception as exc:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not accept invite: {exc}") from exc
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Could not accept invite: {exc}",
+        ) from exc
     household = db.query(DBHousehold).filter(DBHousehold.household_id == invite.household_id).one()
     return AcceptInviteResponse(
         household=HouseholdResponse.model_validate(household),
