@@ -1077,6 +1077,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
         'POST',
         Uri.parse('$backendUrl/inventory/scan-leftover?location_id=1&unit_id=1'),
       );
+      request.headers.addAll(context.read<AuthState>().authHeaders());
       request.files.add(await http.MultipartFile.fromPath('image', image.path));
 
       final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
