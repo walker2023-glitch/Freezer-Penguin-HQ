@@ -38,6 +38,7 @@ from app import models  # noqa: E402
 from app.routers_analytics import router as analytics_router  # noqa: E402
 from app.routers_auth import router as auth_router  # noqa: E402
 from app.routers_inventory import router as inventory_router  # noqa: E402
+from app.routers_households import router as households_router  # noqa: E402
 from app.routers_vision_ingestion import router as vision_router  # noqa: E402
 from app.routers_recipes import router as recipes_router  # noqa: E402
 
@@ -106,6 +107,7 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 app.include_router(analytics_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(households_router, prefix="/api/v1")
 app.include_router(inventory_router, prefix="/api/v1")
 app.include_router(vision_router, prefix="/api/v1")
 app.include_router(recipes_router, prefix="/api/v1")
