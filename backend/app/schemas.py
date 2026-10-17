@@ -303,3 +303,30 @@ class LeftoverScanResponse(BaseModel):
         description="Application-side UTC timestamp of the ingestion event",
         json_schema_extra={"example": "2026-06-27T18:00:00"},
     )
+
+# ---------------------------------------------------------------------------
+# Apartment-first manual inventory mutations
+# ---------------------------------------------------------------------------
+
+class ManualInventoryCreate(BaseModel):
+    """Validated payload for a household-owned manual inventory item."""
+
+    product_name: str = Field(..., min_length=1, max_length=255, strip_whitespace=True)
+    quantity: int = Field(..., ge=1, le=100000)
+    expiration_date: date
+    location_id: int = Field(..., ge=1)
+    unit_id: int = Field(..., ge=1)
+
+
+class InventoryItemUpdate(BaseModel):
+    """Partial update payload for a household-owned inventory item."""
+
+    quantity: Optional[int] = Field(None, ge=0, le=100000)
+    expiration_date: Optional[date] = None
+    product_name: Optional[str] = Field(None, min_length=1, max_length=255, strip_whitespace=True)
+
+
+class InventoryUseRequest(BaseModel):
+    """Number of units to consume from an inventory row."""
+
+    quantity: int = Field(default=1, ge=1, le=100000)
