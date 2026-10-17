@@ -33,7 +33,7 @@ from sqlalchemy.orm import Session
 from app.auth_tokens import get_current_user
 from app.database import get_db
 from app.household_access import get_current_household
-from app.models import DBBarcodeMaster, DBCategory, DBInventoryItem, DBUser
+from app.models import DBBarcodeMaster, DBCategory, DBHousehold, DBInventoryItem, DBUser
 from app.schemas import (
     BarcodeIngestionResponse,
     InventoryItemResponse,
@@ -258,6 +258,7 @@ async def ingest_barcode_item(
     upc: str,
     location_id: int = Query(..., description="FK to storage_locations.location_id"),
     current_user: DBUser = Depends(get_current_user),
+    current_household: DBHousehold = Depends(get_current_household),
     unit_id: int = Query(..., description="FK to Units.unit_id"),
     expiration_date: Optional[date] = Query(
         None,
@@ -537,6 +538,7 @@ async def ingest_barcode_item(
 )
 def get_user_inventory(
     current_user: DBUser = Depends(get_current_user),
+    current_household: DBHousehold = Depends(get_current_household),
     db: Session = Depends(get_db),
 ) -> list[InventoryItemResponse]:
     """
@@ -554,7 +556,13 @@ def get_user_inventory(
     rows = (
         db.query(DBInventoryItem, DBBarcodeMaster)
         .outerjoin(DBBarcodeMaster, DBInventoryItem.UPC == DBBarcodeMaster.UPC)
-        .filter(DBInventoryItem.user_id == current_user.user_id)
+        .filter(
+            DBInventoryItem.household_id == current_household.household_id,
+            or_(
+                DBInventoryItem.is_consumed.is_(False),
+                DBInventoryItem.is_consumed.is_(None),
+            ),
+        )
         .order_by(DBInventoryItem.expiration_date.asc())
         .all()
     )

@@ -63,7 +63,6 @@ class DBUser(Base):
     total_food_wasted_cost = Column(Numeric(10, 2), nullable=True)
 
 
-
 class DBHousehold(Base):
     """A private apartment or household inventory boundary."""
 

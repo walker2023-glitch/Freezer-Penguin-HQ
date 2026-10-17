@@ -304,6 +304,7 @@ class LeftoverScanResponse(BaseModel):
         json_schema_extra={"example": "2026-06-27T18:00:00"},
     )
 
+
 # ---------------------------------------------------------------------------
 # Apartment-first manual inventory mutations
 # ---------------------------------------------------------------------------

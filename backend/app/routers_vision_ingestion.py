@@ -41,8 +41,7 @@ from sqlalchemy.orm import Session
 
 from app.auth_tokens import get_current_user
 from app.database import get_db
-from app.household_access import get_current_household
-from app.models import DBAIAuditLog, DBHousehold, DBInventoryItem, DBUser
+from app.models import DBAIAuditLog, DBInventoryItem, DBUser
 from app.schemas import LeftoverScanResponse
 from app.services_gemini_vision import (
     GEMINI_SYSTEM_PROMPT,
@@ -88,7 +87,6 @@ async def scan_leftover(
         ),
     ),
     current_user: DBUser = Depends(get_current_user),
-    current_household: DBHousehold = Depends(get_current_household),
     location_id: int = Query(..., description="FK to storage_locations.location_id"),
     unit_id: int = Query(..., description="FK to Units.unit_id"),
     db: Session = Depends(get_db),
@@ -200,8 +198,6 @@ async def scan_leftover(
     # NEVER carry a barcode reference.
     # ------------------------------------------------------------------
     new_item = DBInventoryItem(
-        household_id=current_household.household_id,
-        product_name=final_product_name,
         user_id=current_user.user_id,
         quantity=1,
         expiration_date=expiration_date,
