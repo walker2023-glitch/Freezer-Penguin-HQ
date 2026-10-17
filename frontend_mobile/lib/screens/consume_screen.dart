@@ -74,7 +74,10 @@ class _ConsumeScreenState extends State<ConsumeScreen> {
       return mockInventoryItems();
     }
     final response = await http
-        .get(Uri.parse('$backendUrl/inventory/1'))
+        .get(
+          Uri.parse('$backendUrl/inventory'),
+          headers: context.read<AuthState>().authHeaders(),
+        )
         .timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as List<dynamic>;
@@ -107,16 +110,35 @@ class _ConsumeScreenState extends State<ConsumeScreen> {
       return;
     }
     setState(() => _isMarkingEaten = true);
-    // TODO: Phase 6 — POST /api/v1/inventory/{item_id}/consume
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (!mounted) return;
     final name = (_selectedItem!['product_name'] as String?) ?? 'Item';
-    _showSnackBar('$name marked as eaten!');
-    setState(() {
-      _isMarkingEaten = false;
-      _selectedItem = null;
-      _inventoryFuture = _fetchInventory();
-    });
+    try {
+      if (context.read<AuthState>().isOfflinePreview) {
+        await Future.delayed(const Duration(milliseconds: 600));
+      } else {
+        final itemId = _selectedItem!['item_id'];
+        final response = await http
+            .post(
+              Uri.parse('$backendUrl/inventory/$itemId/use'),
+              headers: context.read<AuthState>().authHeaders(json: true),
+              body: jsonEncode({'quantity': 1}),
+            )
+            .timeout(const Duration(seconds: 10));
+        if (response.statusCode != 200) {
+          final body = jsonDecode(response.body) as Map<String, dynamic>;
+          throw Exception(body['detail']?.toString() ?? 'Server returned ${response.statusCode}');
+        }
+      }
+      if (!mounted) return;
+      _showSnackBar('$name marked as eaten!');
+      setState(() {
+        _selectedItem = null;
+        _inventoryFuture = _fetchInventory();
+      });
+    } catch (error) {
+      if (mounted) _showSnackBar('Could not update inventory: $error', isError: true);
+    } finally {
+      if (mounted) setState(() => _isMarkingEaten = false);
+    }
   }
 
   // ── Section 2 actions ─────────────────────────────────────────────────────
