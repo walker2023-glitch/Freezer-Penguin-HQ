@@ -71,7 +71,7 @@ async def ingest_barcode_item(
     logger.info(
         "Barcode ingestion request received — UPC=%s user_id=%s location_id=%s unit_id=%s",
         upc,
-        user_id,
+        current_user.user_id,
         location_id,
         unit_id,
     )
@@ -290,7 +290,7 @@ async def ingest_barcode_item(
             "inventory_items INSERT committed — item_id=%s UPC=%s user_id=%s location_id=%s",
             new_item.item_id,
             upc,
-            user_id,
+            current_user.user_id,
             location_id,
         )
     except Exception as exc:
@@ -332,7 +332,7 @@ async def ingest_barcode_item(
     },
 )
 def get_user_inventory(
-    user_id: int,
+    current_user: DBUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[InventoryItemResponse]:
     """
@@ -357,7 +357,7 @@ def get_user_inventory(
 
     logger.info(
         "Inventory fetch complete — user_id=%s rows_returned=%s",
-        user_id,
+        current_user.user_id,
         len(rows),
     )
 

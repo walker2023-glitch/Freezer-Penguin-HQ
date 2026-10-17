@@ -1075,7 +1075,7 @@ class _IntakePortalViewState extends State<IntakePortalView> {
     try {
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('$backendUrl/inventory/scan-leftover?user_id=1&location_id=1&unit_id=1'),
+        Uri.parse('$backendUrl/inventory/scan-leftover?location_id=1&unit_id=1'),
       );
       request.files.add(await http.MultipartFile.fromPath('image', image.path));
 
