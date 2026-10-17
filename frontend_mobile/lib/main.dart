@@ -10,7 +10,8 @@ import 'package:provider/provider.dart';
 import 'config.dart';                      // backendUrl + AppColors
 import 'offline/mock_data.dart';
 import 'screens/consume_screen.dart';          // Phase 5 — Consume / Feast / Rations tab
-import 'screens/loading_screen.dart';          // Phase 4 — animated splash/loading screen
+import 'screens/loading_screen.dart';
+import 'screens/household_setup_screen.dart';          // Phase 4 — animated splash/loading screen
 import 'screens/login_screen.dart';            // Feature 2.0 — LoginScreen
 import 'preview/kitchen_preview_shell.dart';   // Separate Kitchen redesign preview
 import 'screens/pantry_insights_screen.dart';  // Phase 6 — SQL analytics dashboard
@@ -78,7 +79,7 @@ class FreezerPenguinApp extends StatelessWidget {
                   : auth.isAuthenticated
                       ? (auth.isKitchenPreview
                           ? const KitchenPreviewShell(key: ValueKey('kitchen'))
-                          : const MainNavigationScreen(key: ValueKey('main')))
+                          : const HouseholdGate(key: ValueKey('household-gate')))
                       : const LoginScreen(key: ValueKey('login')),
             ),
           ),
@@ -89,6 +90,89 @@ class FreezerPenguinApp extends StatelessWidget {
 }
 
 // AppColors — moved to lib/config.dart (shared with login_screen.dart)
+
+
+class HouseholdGate extends StatefulWidget {
+  const HouseholdGate({super.key});
+
+  @override
+  State<HouseholdGate> createState() => _HouseholdGateState();
+}
+
+class _HouseholdGateState extends State<HouseholdGate> {
+  bool _loading = true;
+  bool _hasHousehold = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHousehold();
+  }
+
+  Future<void> _loadHousehold() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final auth = context.read<AuthState>();
+      final response = await http
+          .get(
+            Uri.parse('$backendUrl/me'),
+            headers: auth.authHeaders(),
+          )
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode != 200) {
+        throw Exception('Server returned ${response.statusCode}');
+      }
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final households = (body['households'] as List<dynamic>? ?? []);
+      if (!mounted) return;
+      setState(() {
+        _hasHousehold = households.isNotEmpty;
+        _loading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = 'Could not load household information: $error';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      );
+    }
+    if (_hasHousehold) return const MainNavigationScreen();
+    if (_error != null) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(_error!, textAlign: TextAlign.center),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: _loadHousehold,
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    return HouseholdSetupScreen(onComplete: _loadHousehold);
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN NAVIGATION
