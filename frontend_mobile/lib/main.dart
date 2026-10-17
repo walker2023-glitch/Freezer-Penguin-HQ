@@ -79,7 +79,7 @@ class FreezerPenguinApp extends StatelessWidget {
                   : auth.isAuthenticated
                       ? (auth.isKitchenPreview
                           ? const KitchenPreviewShell(key: ValueKey('kitchen'))
-                          : const MainNavigationScreen(key: ValueKey('main')))
+                          : const HouseholdGate(key: ValueKey('household-gate')))
                       : const LoginScreen(key: ValueKey('login')),
             ),
           ),
