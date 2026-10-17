@@ -32,6 +32,7 @@ from sqlalchemy.orm import Session
 
 from app.auth_tokens import get_current_user
 from app.database import get_db
+from app.household_access import get_current_household
 from app.models import DBBarcodeMaster, DBCategory, DBInventoryItem, DBUser
 from app.schemas import (
     BarcodeIngestionResponse,
@@ -50,18 +51,6 @@ _DEFAULT_SHELF_LIFE_DAYS = 365
 _DEFAULT_CATEGORY_ID = 8  # "General" — catch-all per seeded categories table
 
 
-@router.post(
-    "/barcode/{upc}",
-    response_model=BarcodeIngestionResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Scan a UPC barcode, resolve product via Open Food Facts, and log to inventory",
-    responses={
-        201: {"description": "Item created or quantity incremented successfully"},
-        404: {"description": "UPC not found in Open Food Facts catalog"},
-        503: {"description": "Open Food Facts API is unreachable or returned a non-2xx response"},
-        500: {"description": "Database write failed — transaction rolled back"},
-    },
-)
 def _inventory_response(item: DBInventoryItem, catalog: Optional[DBBarcodeMaster] = None) -> InventoryItemResponse:
     return InventoryItemResponse(
         item_id=item.item_id,
@@ -253,6 +242,18 @@ def delete_inventory_item(
         )
 
 
+@router.post(
+    "/barcode/{upc}",
+    response_model=BarcodeIngestionResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Scan a UPC barcode, resolve product via Open Food Facts, and log to inventory",
+    responses={
+        201: {"description": "Item created or quantity incremented successfully"},
+        404: {"description": "UPC not found in Open Food Facts catalog"},
+        503: {"description": "Open Food Facts API is unreachable or returned a non-2xx response"},
+        500: {"description": "Database write failed — transaction rolled back"},
+    },
+)
 async def ingest_barcode_item(
     upc: str,
     location_id: int = Query(..., description="FK to storage_locations.location_id"),
