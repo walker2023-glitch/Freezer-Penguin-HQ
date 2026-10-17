@@ -27,12 +27,20 @@ from datetime import date, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.auth_tokens import get_current_user
 from app.database import get_db
-from app.models import DBBarcodeMaster, DBCategory, DBInventoryItem, DBUser
-from app.schemas import BarcodeIngestionResponse, InventoryItemResponse
+from app.household_access import get_current_household
+from app.models import DBBarcodeMaster, DBCategory, DBHousehold, DBInventoryItem, DBUser
+from app.schemas import (
+    BarcodeIngestionResponse,
+    InventoryItemResponse,
+    InventoryItemUpdate,
+    InventoryUseRequest,
+    ManualInventoryCreate,
+)
 from app.services_open_food_facts import fetch_product_from_off
 
 logger = logging.getLogger(__name__)
@@ -41,6 +49,197 @@ router = APIRouter(prefix="/inventory", tags=["Inventory"])
 
 _DEFAULT_SHELF_LIFE_DAYS = 365
 _DEFAULT_CATEGORY_ID = 8  # "General" — catch-all per seeded categories table
+
+
+def _inventory_response(item: DBInventoryItem, catalog: Optional[DBBarcodeMaster] = None) -> InventoryItemResponse:
+    return InventoryItemResponse(
+        item_id=item.item_id,
+        user_id=item.user_id,
+        upc=item.UPC,
+        product_name=item.product_name or (catalog.product_name if catalog else None),
+        brand=catalog.brand if catalog else None,
+        quantity=item.quantity or 0,
+        expiration_date=item.expiration_date,
+        location_id=item.location_id,
+        unit_id=item.unit_id,
+    )
+
+
+def _get_household_item(
+    db: Session,
+    household_id: int,
+    item_id: int,
+) -> DBInventoryItem:
+    item = (
+        db.query(DBInventoryItem)
+        .filter(
+            DBInventoryItem.item_id == item_id,
+            DBInventoryItem.household_id == household_id,
+        )
+        .first()
+    )
+    if item is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Inventory item not found in the active household.",
+        )
+    return item
+
+
+@router.post(
+    "/",
+    response_model=InventoryItemResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a manual item to the active household inventory",
+)
+def create_manual_item(
+    payload: ManualInventoryCreate,
+    current_user: DBUser = Depends(get_current_user),
+    current_household: DBHousehold = Depends(get_current_household),
+    db: Session = Depends(get_db),
+) -> InventoryItemResponse:
+    item = DBInventoryItem(
+        household_id=current_household.household_id,
+        product_name=payload.product_name,
+        user_id=current_user.user_id,
+        quantity=payload.quantity,
+        expiration_date=payload.expiration_date,
+        UPC=None,
+        location_id=payload.location_id,
+        unit_id=payload.unit_id,
+        is_consumed=False,
+    )
+    try:
+        db.add(item)
+        db.commit()
+        db.refresh(item)
+    except Exception as exc:
+        db.rollback()
+        logger.error(
+            "Manual inventory insert failed — household_id=%s error=%s",
+            current_household.household_id,
+            exc,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not add inventory item. Transaction rolled back.",
+        )
+    logger.info(
+        "Manual inventory item created — household_id=%s item_id=%s user_id=%s",
+        current_household.household_id,
+        item.item_id,
+        current_user.user_id,
+    )
+    return _inventory_response(item)
+
+
+@router.patch(
+    "/{item_id}",
+    response_model=InventoryItemResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Update a household inventory item",
+)
+def update_inventory_item(
+    item_id: int,
+    payload: InventoryItemUpdate,
+    current_household: DBHousehold = Depends(get_current_household),
+    db: Session = Depends(get_db),
+) -> InventoryItemResponse:
+    item = _get_household_item(db, current_household.household_id, item_id)
+    if item.is_consumed:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Consumed inventory items cannot be updated.",
+        )
+    changes = payload.model_dump(exclude_unset=True)
+    if not changes:
+        return _inventory_response(item)
+    for field, value in changes.items():
+        setattr(item, field, value)
+    if payload.quantity == 0:
+        item.is_consumed = True
+    try:
+        db.commit()
+        db.refresh(item)
+    except Exception as exc:
+        db.rollback()
+        logger.error("Inventory update failed — item_id=%s error=%s", item_id, exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not update inventory item. Transaction rolled back.",
+        )
+    return _inventory_response(item)
+
+
+@router.post(
+    "/{item_id}/use",
+    response_model=InventoryItemResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Consume units from a household inventory item",
+)
+def use_inventory_item(
+    item_id: int,
+    payload: InventoryUseRequest,
+    current_household: DBHousehold = Depends(get_current_household),
+    db: Session = Depends(get_db),
+) -> InventoryItemResponse:
+    item = (
+        db.query(DBInventoryItem)
+        .filter(
+            DBInventoryItem.item_id == item_id,
+            DBInventoryItem.household_id == current_household.household_id,
+        )
+        .with_for_update()
+        .first()
+    )
+    if item is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Inventory item not found in the active household.",
+        )
+    available = item.quantity or 0
+    if item.is_consumed or payload.quantity > available:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Cannot use {payload.quantity} units; only {available} remain.",
+        )
+    item.quantity = available - payload.quantity
+    if item.quantity == 0:
+        item.is_consumed = True
+    try:
+        db.commit()
+        db.refresh(item)
+    except Exception as exc:
+        db.rollback()
+        logger.error("Inventory use failed — item_id=%s error=%s", item_id, exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not use inventory item. Transaction rolled back.",
+        )
+    return _inventory_response(item)
+
+
+@router.delete(
+    "/{item_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Remove an inventory item from the active household",
+)
+def delete_inventory_item(
+    item_id: int,
+    current_household: DBHousehold = Depends(get_current_household),
+    db: Session = Depends(get_db),
+) -> None:
+    item = _get_household_item(db, current_household.household_id, item_id)
+    try:
+        db.delete(item)
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        logger.error("Inventory delete failed — item_id=%s error=%s", item_id, exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not delete inventory item. Transaction rolled back.",
+        )
 
 
 @router.post(
@@ -59,6 +258,7 @@ async def ingest_barcode_item(
     upc: str,
     location_id: int = Query(..., description="FK to storage_locations.location_id"),
     current_user: DBUser = Depends(get_current_user),
+    current_household: DBHousehold = Depends(get_current_household),
     unit_id: int = Query(..., description="FK to Units.unit_id"),
     expiration_date: Optional[date] = Query(
         None,
@@ -239,6 +439,8 @@ async def ingest_barcode_item(
         )
         try:
             existing_item.quantity = (existing_item.quantity or 0) + 1
+            existing_item.product_name = product_name
+            existing_item.is_consumed = False
             db.commit()
             db.refresh(existing_item)
             logger.info(
@@ -276,6 +478,8 @@ async def ingest_barcode_item(
     # New item path — first scan of this UPC at this location for this user
     # ------------------------------------------------------------------
     new_item = DBInventoryItem(
+        household_id=current_household.household_id,
+        product_name=product_name,
         user_id=current_user.user_id,
         quantity=1,
         expiration_date=expiration_date,
@@ -334,6 +538,7 @@ async def ingest_barcode_item(
 )
 def get_user_inventory(
     current_user: DBUser = Depends(get_current_user),
+    current_household: DBHousehold = Depends(get_current_household),
     db: Session = Depends(get_db),
 ) -> list[InventoryItemResponse]:
     """
@@ -351,7 +556,13 @@ def get_user_inventory(
     rows = (
         db.query(DBInventoryItem, DBBarcodeMaster)
         .outerjoin(DBBarcodeMaster, DBInventoryItem.UPC == DBBarcodeMaster.UPC)
-        .filter(DBInventoryItem.user_id == current_user.user_id)
+        .filter(
+            DBInventoryItem.household_id == current_household.household_id,
+            or_(
+                DBInventoryItem.is_consumed.is_(False),
+                DBInventoryItem.is_consumed.is_(None),
+            ),
+        )
         .order_by(DBInventoryItem.expiration_date.asc())
         .all()
     )
@@ -362,17 +573,4 @@ def get_user_inventory(
         len(rows),
     )
 
-    return [
-        InventoryItemResponse(
-            item_id=item.item_id,
-            user_id=item.user_id,
-            upc=item.UPC,
-            product_name=catalog.product_name if catalog else None,
-            brand=catalog.brand if catalog else None,
-            quantity=item.quantity or 0,
-            expiration_date=item.expiration_date,
-            location_id=item.location_id,
-            unit_id=item.unit_id,
-        )
-        for item, catalog in rows
-    ]
+    return [_inventory_response(item, catalog) for item, catalog in rows]
